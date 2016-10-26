@@ -67,6 +67,20 @@ public class LDrawColor {
 	}
 	
 	
+	
+	static private Color getBlendedColor(int id) {
+		
+		if (id < 256 || id > 511)
+			throw new IllegalArgumentException("[LDrawColor] Invalid blended color id.");
+		int h = (id - 256) / 16;
+		int l = (id - 256) % 16;
+		Color ch = ldrColors.get(h).c;
+		Color cl = ldrColors.get(l).c;
+		return new Color((ch.getRed()+cl.getRed())/2,(ch.getGreen()+cl.getGreen())/2,(ch.getBlue()+cl.getBlue())/2);
+	}
+	
+	
+	
 	/** 
 	 * Returns part color identified by <b>id</b> as LDraw color index or direct color 
 	 * 
@@ -75,12 +89,16 @@ public class LDrawColor {
 	 */
 	static public Color getColorById(int id) {
 
-		if (id < 0x2000000) { 
+		if (id < 256) {
 			Color c = ldrColors.get(id).c;
 			if (c != null)
 				return c;
 		}
-		else if (id < 0x3000000)
+		else if (id < 0x200) {
+			// it is a blended color
+			return getBlendedColor(id);
+		}
+		else if (id >= 0x2000000 && id < 0x3000000)
 			return new Color(id-0x2000000);
 		Logger.getAnonymousLogger().warning("Invalid color: "+id);
 		return Color.BLACK;
@@ -95,17 +113,22 @@ public class LDrawColor {
 	 */
 	static public Color getEdgeColorById(int id) {
 		
-		if (id < 0x2000000) {
+		if (id < 256) {
 			Color c = ldrColors.get(id).edge;
 			if (c != null)
 				return c;
 		}
-		else if (id < 0x3000000) {
+		else if (id < 0x200) {
+			// it is a blended color
+			Logger.getAnonymousLogger().warning("Invalid blended edge color: "+id);
+			return getBlendedColor(id);
+		}
+		else if (id >= 0x2000000 && id < 0x3000000) {
 			Logger.getAnonymousLogger().warning("Invalid direct edge color: "+id);
 			// this can't  happens, but...
 			return new Color(id-0x2000000);
 		}
-		Logger.getAnonymousLogger().warning("Invalid color: "+id);
+		Logger.getAnonymousLogger().warning("Invalid edge color: "+id);
 		return Color.RED;
 	}
 	
@@ -120,9 +143,12 @@ public class LDrawColor {
 	 */
 	static public boolean isLDrawColor(int id) {
 		
-		if (id < 0x2000000) 
+		if (id < 256) 
 			return ldrColors.containsKey(id);
-		else if (id < 0x3000000)
+		else if (id < 0x200)
+			// blended color
+			return true;
+		else if (id >= 0x2000000 && id < 0x3000000)
 			// is a direct color
 			return true;
 		return false;
@@ -140,7 +166,7 @@ public class LDrawColor {
 		
 		LDrawColor c;
 		
-		if (id < 0x2000000) { 
+		if (id < 256) { 
 			c = ldrColors.get(id);
 			if (c == null) {
 				Logger.getAnonymousLogger().warning("[LdrawColor] Unknown color: "+id);
@@ -148,9 +174,13 @@ public class LDrawColor {
 			}
 			return c;
 		}
-		else if (id < 0x3000000) {
+		else if (id < 0x200) {
+			// blended color
+			return newLDrawColor("Blended color "+id,id,getBlendedColor(id),getColorById(EDGE));
+		}
+		else if (id >= 0x2000000 && id < 0x3000000) {
 			// it is a direct color
-			return newLDrawColor("Direct color",id,new Color(id-0x2000000),new Color(id-0x2000000));
+			return newLDrawColor("Direct color",id,new Color(id-0x2000000),getColorById(EDGE));
 		}
 		Logger.getAnonymousLogger().warning("[LdrawColor] Illegal direct color: "+id);
 		return ldrColors.get(INVALID_COLOR);

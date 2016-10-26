@@ -296,7 +296,6 @@ public class LDrawLib {
 				continue;
 			if (ldLibs.get(i).isOfficial())
 				return i;
-			i++;
 		}
 		return -1;
 	}
@@ -382,7 +381,6 @@ public class LDrawLib {
 			LDrawPartType t = ldLibs.get(i).checkPart(ldrawId);
 			if (t != LDrawPartType.NONE)
 				return t;
-			i++;
 		}
 		return LDrawPartType.NONE;
 	}
@@ -415,7 +413,6 @@ public class LDrawLib {
 			LineNumberReader l = ldLibs.get(i).getFile(path);
 			if (l != null)
 				return l;
-			i++;
 		}
 		throw new FileNotFoundException("[LDrawLib] File '"+path+"' not found.");
 	}
@@ -464,7 +461,6 @@ public class LDrawLib {
 			LineNumberReader l = ldLibs.get(i).getPart(ldrawid);
 			if (l != null)
 				return l;
-			i++;
 		}
 		System.err.println("[LDLibrary] Unable to get part "+ldrawid);
     	return null;

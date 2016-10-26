@@ -1,3 +1,16 @@
+2016-10-26  Mario Pascucci  <mpascucci@gmail.com>
+
+	* LDrawColor.java (getBlendedColor): added function to create a blended color from standard colors
+	(getColorById): added handling for blended color 
+	(getEdgeColorById): added handling for blended color 
+	(isLDrawColor): added handling for blended color
+	(getById): added handling for blended color
+	* LDLibrary.java (getPart): removed silly warning message on part not found
+	* LDrawLib.java (getOfficialIndex): double increment fixed
+	(checkPart): double increment fixed
+	(getFile): double increment fixed
+	(getPart): double increment fixed
+
 2016-09-21  Mario Pascucci  <mpascucci@gmail.com>
 
 	* LDLibTableModel.java: added model for library management dialog

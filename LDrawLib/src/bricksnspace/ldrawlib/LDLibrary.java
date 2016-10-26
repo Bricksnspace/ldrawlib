@@ -175,7 +175,7 @@ public class LDLibrary {
 			Enumeration<? extends ZipEntry> en = libZip.entries();
 			while (en.hasMoreElements()) {
 				ZipEntry ze = en.nextElement();
-//				System.out.println(ze.toString());
+				//System.out.println(ze.toString());
 				if (!ze.isDirectory()) {
 					// if a duplicate exists, first win
 					String key = ze.getName().toLowerCase();
@@ -186,6 +186,7 @@ public class LDLibrary {
 						continue;
 					}
 					partList.put(key, ze.getName());
+					//System.out.println(key+" - "+ze.getName());
 				}
 			}
 
@@ -471,7 +472,7 @@ public class LDLibrary {
 				return null;
 			}
 		else {
-			System.err.println("[LDLibrary] Unable to get part "+ldrid);
+			//System.err.println("[LDLibrary] Unable to get part "+ldrid);
         	return null;
 		}
 	}
