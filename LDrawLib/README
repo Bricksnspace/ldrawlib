@@ -1,6 +1,13 @@
 README for LDrawLib
 
-A Java library to handle LDraw par library.
+A Java library to handle LDraw part library.
+
+Some features:
+- handle multiple libraries
+- allow defining an official library and unlimited unofficial/user library
+- can handle library as folder with files in it or as zipped file
+- can support autoconnect for parts
+- autodetect connections 
 
 For more information see http://www.ldraw.org/
 
