@@ -28,6 +28,8 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipException;
 
 import javax.swing.BoxLayout;
@@ -179,9 +181,9 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 				ldl.addLDLib(jfc.getSelectedFile().getPath());
 				tableModel.refreshTable();
 			} catch (ZipException e) {
-				e.printStackTrace();
+				Logger.getGlobal().log(Level.SEVERE,"Zip library read error", e);
 			} catch (IOException e) {
-				e.printStackTrace();
+				Logger.getGlobal().log(Level.SEVERE,"Zip library read error", e);
 			}
 		}
 		else if (ev.getSource() == delButton) {

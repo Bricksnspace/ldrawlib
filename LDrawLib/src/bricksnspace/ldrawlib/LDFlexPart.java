@@ -230,7 +230,7 @@ public class LDFlexPart {
 				else if (tag.equals("auxp") && isAuxList) {
 					auxpart = e.asStartElement().getAttributeByName(new QName("name")).getValue().toLowerCase().trim();
 					if (!auxpart.startsWith("__")) {
-						Logger.getAnonymousLogger().log(Level.WARNING, "Auxiliary part name not starting with '__'");
+						Logger.getGlobal().log(Level.WARNING, "Auxiliary part name not starting with '__'");
 					}
 					isAuxPart = true;
 				}
@@ -247,13 +247,13 @@ public class LDFlexPart {
 						fp.howRigid = Float.parseFloat(e.asStartElement().getAttributeByName(new QName("rigid")).getValue());
 					} catch (NumberFormatException e1) {
 						fp.howRigid = 10;
-						Logger.getAnonymousLogger().log(Level.WARNING, e1.getLocalizedMessage());
+						Logger.getGlobal().log(Level.WARNING, e1.getLocalizedMessage());
 					}
 					try {
 						fp.maxLength = Float.parseFloat(e.asStartElement().getAttributeByName(new QName("len")).getValue());
 					} catch (NumberFormatException e1) {
 						fp.maxLength = 10000;
-						Logger.getAnonymousLogger().log(Level.WARNING, e1.getLocalizedMessage());
+						Logger.getGlobal().log(Level.WARNING, e1.getLocalizedMessage());
 					}
 				}
 				else if (tag.equals("start") && isPart) {
@@ -295,7 +295,7 @@ public class LDFlexPart {
 							fp.overlapLen = Float.parseFloat(e.asStartElement().getAttributeByName(new QName("overlap")).getValue());
 						} catch (NumberFormatException e1) {
 							fp.overlapLen = 0;
-							Logger.getAnonymousLogger().log(Level.WARNING, e1.getLocalizedMessage());
+							Logger.getGlobal().log(Level.WARNING, e1.getLocalizedMessage());
 						}
 					}
 					Point3D base,head;
@@ -376,7 +376,7 @@ public class LDFlexPart {
 						//System.out.println(fp);
 					}
 					else {
-						Logger.getAnonymousLogger().log(Level.WARNING,"Missing Start,Mid or end tag");
+						Logger.getGlobal().log(Level.WARNING,"Missing Start,Mid or end tag");
 					}
 					fp = null;
 					isStart = false;

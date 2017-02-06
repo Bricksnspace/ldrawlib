@@ -29,6 +29,8 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -468,7 +470,7 @@ public class LDLibrary {
 					return new LineNumberReader(new InputStreamReader(libZip.getInputStream(libZip.getEntry(ze))));
 				}
 			} catch (IOException e) {
-				System.err.println("[LDLibrary] Unable to get part "+ldrid+" "+e.getLocalizedMessage());
+				Logger.getGlobal().log(Level.SEVERE,"[LDLibrary] Unable to get part "+ldrid+" "+e.getLocalizedMessage(),e);
 				return null;
 			}
 		else {

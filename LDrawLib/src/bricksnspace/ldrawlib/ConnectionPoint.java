@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -128,7 +130,7 @@ public class ConnectionPoint {
 		} catch (IOException e) {
 			// ignore if no flexpart file found
 		} catch (XMLStreamException e) {
-			e.printStackTrace();
+			Logger.getGlobal().log(Level.SEVERE,"Error init flex-part system",e);
 		}
 	}
 	
@@ -389,11 +391,9 @@ public class ConnectionPoint {
 							}
 						}
 					} catch (XMLStreamException e) {
-						System.out.println("Error reading connection file: "+p.getLdrawId());
-						e.printStackTrace();
+						Logger.getGlobal().log(Level.SEVERE,"Error reading connection file: "+p.getLdrawId(),e);
 					} catch (IOException e) {
-						System.out.println("Error reading connection file: "+p.getLdrawId());
-						e.printStackTrace();
+						Logger.getGlobal().log(Level.SEVERE,"Error reading connection file: "+p.getLdrawId(),e);
 					}
 				}
 				if (connectionsCache.containsKey(filepart)) {
@@ -945,7 +945,7 @@ public class ConnectionPoint {
 						isConn = true;
 					}
 					catch (NullPointerException ex) {
-						System.out.println("Unknown connection type (line#"+e.getLocation().getLineNumber()+"): "+e);
+						Logger.getGlobal().log(Level.SEVERE,"Unknown connection type (line#"+e.getLocation().getLineNumber()+"): "+e,ex);
 					}
 				}
 				else if (tag.equals("base") && isConn) {
@@ -1137,11 +1137,9 @@ public class ConnectionPoint {
 					}
 				}
 			} catch (XMLStreamException e) {
-				System.out.println("Error reading connection file: "+p.getLdrawId());
-				e.printStackTrace();
+				Logger.getGlobal().log(Level.SEVERE,"Error reading connection file: "+p.getLdrawId(),e);
 			} catch (IOException e) {
-				System.out.println("Error reading connection file: "+p.getLdrawId());
-				e.printStackTrace();
+				Logger.getGlobal().log(Level.WARNING,"Error reading connection file: "+p.getLdrawId(),e);
 			}
 			// if no file were found
 			if (!found) {

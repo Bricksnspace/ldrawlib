@@ -25,6 +25,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -138,11 +139,9 @@ public class LDrawParser {
 	 * Parses a string representing a color index or a direct color with syntax "0x2RRGGBB"
 	 * 
 	 * @param s string contains characters to parse
-	 * @return integer as color index or a direct color (0x2rrggbb -> decimal)
-	 * @throws LDrawException 
-	 * @throws NumberFormatException if string isn't an hexadecimal or decimal integer 
+	 * @return integer as color index or a direct color (0x2rrggbb -> decimal) or INVALID_COLOR
 	 */
-	public static int parseColorIndex(String s) throws LDrawException {
+	public static int parseColorIndex(String s) {
 
 		int color;
 		
@@ -155,7 +154,8 @@ public class LDrawParser {
         		color = Integer.parseInt(s);
         	}
         } catch (NumberFormatException ex) {
-        	throw new LDrawException(LDrawParser.class,"Invalid color specification: "+s);
+        	Logger.getGlobal().log(Level.WARNING, "Invalid color specification: "+s+"\n"+ex.getLocalizedMessage());
+        	color = LDrawColor.INVALID_COLOR;
         }
         return color;
 	}
@@ -167,9 +167,8 @@ public class LDrawParser {
 	 * @param l string to parse (a complete line)
 	 * @param invert if part must be considered "inverted" ({@link http://www.ldraw.org/article/415})
 	 * @return LDPrimitive containing part reference, transform matrix, color and inversion flag
-	 * @throws LDrawException if there are parse or format error 
 	 */
-	public static LDPrimitive parseLineType1(String l, boolean invert) throws LDrawException {
+	public static LDPrimitive parseLineType1(String l, boolean invert) {
 		
         Matcher partMatch = partPattern.matcher(l);
         if (partMatch.lookingAt()) {
@@ -193,15 +192,15 @@ public class LDrawParser {
 	                	);
         	}
         	catch (NumberFormatException ex) {
-        		throw new LDrawException(LDrawParser.class,"Invalid number: "+ex.getLocalizedMessage());
+        		throw new IllegalArgumentException("Invalid number: ",ex);
         	}
         	catch (IndexOutOfBoundsException ex) {
-        		System.out.println(partMatch.groupCount()+" - "+partMatch.group());
-        		throw new LDrawException(LDrawParser.class,"Invalid line type 1: "+ex.getLocalizedMessage());
+        		throw new IllegalArgumentException("Invalid line type 1: "+ex.getLocalizedMessage()+"\n"+
+        				partMatch.groupCount()+" - "+partMatch.group());
         	}
         }
         else {
-    		throw new LDrawException(LDrawParser.class,"Parse error: "+l);
+    		throw new IllegalArgumentException("Parse error: "+l);
         }
 	}
 	
@@ -212,9 +211,8 @@ public class LDrawParser {
 	 * Parses a line type 2 (a two point line)
 	 * @param l string to parse (a complete line)
 	 * @return LDPrimitive containing line points and color
-	 * @throws LDrawException if there are parse or format error
 	 */
-	public static LDPrimitive parseLineType2(String l) throws LDrawException {
+	public static LDPrimitive parseLineType2(String l) {
 		
         Matcher lineMatch = linePattern.matcher(l);
         if (lineMatch.lookingAt()) {
@@ -230,14 +228,14 @@ public class LDrawParser {
 	                	);
         	}
         	catch (NumberFormatException ex) {
-        		throw new LDrawException(LDrawParser.class,"Invalid number: "+ex.getLocalizedMessage());
+        		throw new IllegalArgumentException("Invalid number: ",ex);
         	}
         	catch (IndexOutOfBoundsException ex) {
-        		throw new LDrawException(LDrawParser.class,"Invalid line type 2: "+ex.getLocalizedMessage());
+        		throw new IllegalArgumentException("Invalid line type 2: "+ex.getLocalizedMessage());
         	}
         }
         else {
-        	throw new LDrawException(LDrawParser.class,"Parse error: "+l);
+        	throw new IllegalArgumentException("Parse error: "+l);
         }
 	}
 
@@ -248,9 +246,8 @@ public class LDrawParser {
 	 * @param l string to parse (a complete line)
 	 * @param invert if triangle must be considered "inverted" ({@link http://www.ldraw.org/article/415})
 	 * @return LDPrimitive containing triangle points, inversion flag and color
-	 * @throws LDrawException if there are parse or format error
 	 */
-	public static LDPrimitive parseLineType3(String l, boolean invert) throws LDrawException {
+	public static LDPrimitive parseLineType3(String l, boolean invert) {
 		
         Matcher triangleMatch = trianglePattern.matcher(l);
         if (triangleMatch.lookingAt()) {
@@ -270,14 +267,14 @@ public class LDrawParser {
 	                	);
         	}
         	catch (NumberFormatException ex) {
-        		throw new LDrawException(LDrawParser.class,"Invalid number: "+ex.getLocalizedMessage());
+        		throw new IllegalArgumentException("Invalid number: ",ex);
         	}
         	catch (IndexOutOfBoundsException ex) {
-        		throw new LDrawException(LDrawParser.class,"Invalid line type 3: "+ex.getLocalizedMessage());
+        		throw new IllegalArgumentException("Invalid line type 3: "+ex.getLocalizedMessage());
         	}
         }
         else {
-        	throw new LDrawException(LDrawParser.class,"Parse error: "+l);
+        	throw new IllegalArgumentException("Parse error: "+l);
         }
 	}
 
@@ -288,9 +285,8 @@ public class LDrawParser {
 	 * @param l string to parse (a complete line)
 	 * @param invert if quad must be considered "inverted" ({@link http://www.ldraw.org/article/415})
 	 * @return LDPrimitive containing quad points, inversion flag and color
-	 * @throws LDrawException if there are parse or format error
 	 */
-	public static LDPrimitive parseLineType4(String l, boolean invert) throws LDrawException {
+	public static LDPrimitive parseLineType4(String l, boolean invert) {
 		
         Matcher quadMatch = quadPattern.matcher(l);
         if (quadMatch.lookingAt()) {
@@ -313,14 +309,14 @@ public class LDrawParser {
 	                	);
         	}
         	catch (NumberFormatException ex) {
-        		throw new LDrawException(LDrawParser.class,"Invalid number: "+ex.getLocalizedMessage());
+        		throw new IllegalArgumentException("Invalid number: ",ex);
         	}
         	catch (IndexOutOfBoundsException ex) {
-        		throw new LDrawException(LDrawParser.class,"Invalid line type 4: "+ex.getLocalizedMessage());
+        		throw new IllegalArgumentException("Invalid line type 4: "+ex.getLocalizedMessage());
         	}
         }
         else {
-        	throw new LDrawException(LDrawParser.class,"Parse error: "+l);
+        	throw new IllegalArgumentException("Parse error: "+l);
         }
 	}
 
@@ -330,9 +326,8 @@ public class LDrawParser {
 	 * Parses a line type 5 (a two point auxiliary line)
 	 * @param l string to parse (a complete line)
 	 * @return LDPrimitive containing line points and color
-	 * @throws LDrawException if there are parse or format error
 	 */
-	public static LDPrimitive parseLineType5(String l) throws LDrawException {
+	public static LDPrimitive parseLineType5(String l) {
 		
         Matcher auxLineMatch = auxLinePattern.matcher(l);
         if (auxLineMatch.lookingAt()) {
@@ -354,14 +349,14 @@ public class LDrawParser {
 	                	);
         	}
         	catch (NumberFormatException ex) {
-        		throw new LDrawException(LDrawParser.class,"Invalid number: "+ex.getLocalizedMessage());
+        		throw new IllegalArgumentException("Invalid number: ",ex);
         	}
         	catch (IndexOutOfBoundsException ex) {
-        		throw new LDrawException(LDrawParser.class,"Invalid line type 5: "+ex.getLocalizedMessage());
+        		throw new IllegalArgumentException("Invalid line type 5: "+ex.getLocalizedMessage());
         	}
         }
         else {
-        	throw new LDrawException(LDrawParser.class,"Parse error: "+l);
+        	throw new IllegalArgumentException("Parse error: "+l);
         }
 	}
 
@@ -408,7 +403,7 @@ public class LDrawParser {
                     	return LDrawCommand.BFC_CCW;
                     }
                     else if (ld.length == 4 && ld[3].equalsIgnoreCase("invertnext")) {
-                    	Logger.getAnonymousLogger().warning("Deprecated command BFC CERTIFY INVERTNEXT");
+                    	Logger.getGlobal().warning("Deprecated command BFC CERTIFY INVERTNEXT");
                     	return LDrawCommand.BFC_INVERTNEXT;
                     }
 	        	}
@@ -550,12 +545,12 @@ public class LDrawParser {
 		boolean official = true;
 	    String[] ld = l.trim().split("\\s+");
 	    if (ld.length <= 2) {
-	    	Logger.getAnonymousLogger().warning("Malformed part type command: " + l);
+	    	Logger.getGlobal().warning("Malformed part type command: " + l);
 	    	return LDrawPartType.MODEL;
 	    }
 	    if (ld.length >= 4 && ld[1].equalsIgnoreCase("Official") && ld[2].equalsIgnoreCase("LCAD")) {
 	    	if (ld.length < 5) {
-	    		Logger.getAnonymousLogger().warning("Malformed part type command: " + l);
+	    		Logger.getGlobal().warning("Malformed part type command: " + l);
 		    	return LDrawPartType.MODEL;
 	    	}
 	    }
@@ -616,28 +611,28 @@ public class LDrawParser {
     		return LDrawPartType.SUBMODEL;
 	    }
 	    else if (type.equalsIgnoreCase("Element")) {
-	    	Logger.getAnonymousLogger().warning("Deprecated/obsolete type: " + l);
+	    	Logger.getGlobal().warning("Deprecated/obsolete type: " + l);
 	    	if (official)
 	    		return LDrawPartType.SUBPART;
 	    	else
 	    		return LDrawPartType.UNOFF_SUB;
 	    }
 	    else if (type.equalsIgnoreCase("Sub-part")) {
-	    	Logger.getAnonymousLogger().warning("Deprecated/obsolete type: " + l);
+	    	Logger.getGlobal().warning("Deprecated/obsolete type: " + l);
 	    	if (official)
 	    		return LDrawPartType.SUBPART;
 	    	else 
 	    		return LDrawPartType.UNOFF_SUB;
 	    }
 	    else if (type.equalsIgnoreCase("Alias")) {
-	    	Logger.getAnonymousLogger().warning("Deprecated/obsolete type: " + l);
+	    	Logger.getGlobal().warning("Deprecated/obsolete type: " + l);
 	    	if (official)
 	    		return LDrawPartType.OFFICIAL;
 	    	else 
 	    		return LDrawPartType.UNOFFICIAL;
 	    }
 	    else if (type.equalsIgnoreCase("Cross-reference")) {
-	    	Logger.getAnonymousLogger().warning("Deprecated/obsolete type: " + l);
+	    	Logger.getGlobal().warning("Deprecated/obsolete type: " + l);
 	    	if (official)
 	    		return LDrawPartType.SUBPART;
 	    	else 
@@ -669,7 +664,7 @@ public class LDrawParser {
 	
 	
 	
-	public static Date parseHistory(String l) throws LDrawException {
+	public static Date parseHistory(String l) {
 		
 		Matcher dateMatch = historyPattern.matcher(l);
         if (dateMatch.lookingAt()) {
@@ -682,19 +677,19 @@ public class LDrawParser {
         		return date;
         	}
         	catch (IndexOutOfBoundsException ex) {
-        		throw new LDrawException(LDrawParser.class,"No date in !HISTORY line: "+l);
+        		throw new IllegalArgumentException("No date in !HISTORY line: "+l);
         	} catch (ParseException e) {
-        		throw new LDrawException(LDrawParser.class,"Invalid !HISTORY date: "+l);
+        		throw new IllegalArgumentException("Invalid !HISTORY date: "+l);
 			}
         }
         else {
-    		throw new LDrawException(LDrawParser.class,"Invalid !HISTORY meta: "+l);
+    		throw new IllegalArgumentException("Invalid !HISTORY meta: "+l);
         }
 		
 	}
 
 	
-	public static String parseMpdFile(String l) throws LDrawException {
+	public static String parseMpdFile(String l) {
 		
 		String file;
 		Matcher fileMatch = filePattern.matcher(l);
@@ -703,11 +698,11 @@ public class LDrawParser {
         		file = fileMatch.group(1).trim();
         	}
         	catch (IndexOutOfBoundsException ex) {
-        		throw new LDrawException(LDrawParser.class,"Invalid MPD filename: "+l);
+        		throw new IllegalArgumentException("Invalid MPD filename: "+l);
         	}
         }
         else {
-    		throw new LDrawException(LDrawParser.class,"Invalid MPD filename: "+l);
+    		throw new IllegalArgumentException("Invalid MPD filename: "+l);
         }
         return file;
 	}
@@ -717,9 +712,8 @@ public class LDrawParser {
 	 * Parses a !COLOUR statement
 	 * @param l string containing statement
 	 * @return an LDrawColor object
-	 * @throws LDrawException if parameter is missing or in wrong format
 	 */
-	public static LDrawColor parseColour(String l) throws LDrawException {
+	public static LDrawColor parseColour(String l) {
 		
 		String[] ld = l.trim().split("\\s+");
 
@@ -731,7 +725,7 @@ public class LDrawParser {
         	int ex = searchToken(ld, "edge");
         	int ax = searchToken(ld, "alpha");
         	if (idx < 0 || cx < 0 || ex < 0) {
-        		throw new LDrawException(LDrawParser.class,"Invalid !COLOUR specification: " + l);
+        		throw new IllegalArgumentException("Invalid !COLOUR specification: " + l);
         	}
     		int a = 255;
     		int code = LDrawColor.INVALID_COLOR;
@@ -740,14 +734,14 @@ public class LDrawParser {
     				a = Integer.parseInt(ld[ax]);
     			}
     			catch (NumberFormatException exc) {
-    				throw new LDrawException(LDrawParser.class,"Invalid ALPHA value: " +ld[ax]);
+    				throw new IllegalArgumentException("Invalid ALPHA value: " +ld[ax]);
     			}
     		}
     		try {
     			code = Integer.parseInt(ld[idx]);
     		}
     		catch (NumberFormatException exc) {
-    			throw new LDrawException(LDrawParser.class,"Invalid CODE value: "+ld[idx]);
+    			throw new IllegalArgumentException("Invalid CODE value: "+ld[idx]);
     		}
     		Color c, e;
     		try {
@@ -757,7 +751,7 @@ public class LDrawParser {
         		c = new Color(r,g,b,a);
     		}
     		catch (NumberFormatException exc) {
-    			throw new LDrawException(LDrawParser.class,"Invalid VALUE format: "+ld[cx]);
+    			throw new IllegalArgumentException("Invalid VALUE format: "+ld[cx]);
     		}
     		try {
     			if (ld[ex].startsWith("#")) {
@@ -771,16 +765,16 @@ public class LDrawParser {
     				// it is an LDraw color code
     				e = LDrawColor.getColorById(Integer.parseInt(ld[ex]));
     				if (e == null) {
-    					throw new LDrawException(LDrawParser.class,"Invalid EDGE color reference: "+ld[ex]);
+    					throw new IllegalArgumentException("Invalid EDGE color reference: "+ld[ex]);
     				}
     			}
     		}
     		catch (NumberFormatException nfe) {
-    			throw new LDrawException(LDrawParser.class,"Invalid EDGE format: "+ld[ex]);
+    			throw new IllegalArgumentException("Invalid EDGE format: "+ld[ex]);
     		}
     		return LDrawColor.newLDrawColor(name, code, c, e);
 	    }
-        throw new LDrawException(LDrawParser.class,"Invalid !COLOUR definition: "+l);
+        throw new IllegalArgumentException("Invalid !COLOUR definition: "+l);
 	}
 	
 	

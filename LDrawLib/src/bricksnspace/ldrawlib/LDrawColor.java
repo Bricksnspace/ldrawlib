@@ -100,7 +100,7 @@ public class LDrawColor {
 		}
 		else if (id >= 0x2000000 && id < 0x3000000)
 			return new Color(id-0x2000000);
-		Logger.getAnonymousLogger().warning("Invalid color: "+id);
+		Logger.getGlobal().warning("Invalid color: "+id);
 		return Color.BLACK;
 	}
 	
@@ -120,15 +120,15 @@ public class LDrawColor {
 		}
 		else if (id < 0x200) {
 			// it is a blended color
-			Logger.getAnonymousLogger().warning("Invalid blended edge color: "+id);
+			Logger.getGlobal().warning("Invalid blended edge color: "+id);
 			return getBlendedColor(id);
 		}
 		else if (id >= 0x2000000 && id < 0x3000000) {
-			Logger.getAnonymousLogger().warning("Invalid direct edge color: "+id);
+			Logger.getGlobal().warning("Invalid direct edge color: "+id);
 			// this can't  happens, but...
 			return new Color(id-0x2000000);
 		}
-		Logger.getAnonymousLogger().warning("Invalid edge color: "+id);
+		Logger.getGlobal().warning("Invalid edge color: "+id);
 		return Color.RED;
 	}
 	
@@ -169,7 +169,7 @@ public class LDrawColor {
 		if (id < 256) { 
 			c = ldrColors.get(id);
 			if (c == null) {
-				Logger.getAnonymousLogger().warning("[LdrawColor] Unknown color: "+id);
+				Logger.getGlobal().warning("[LdrawColor] Unknown color: "+id);
 				return ldrColors.get(INVALID_COLOR);
 			}
 			return c;
@@ -182,7 +182,7 @@ public class LDrawColor {
 			// it is a direct color
 			return newLDrawColor("Direct color",id,new Color(id-0x2000000),getColorById(EDGE));
 		}
-		Logger.getAnonymousLogger().warning("[LdrawColor] Illegal direct color: "+id);
+		Logger.getGlobal().warning("[LdrawColor] Illegal direct color: "+id);
 		return ldrColors.get(INVALID_COLOR);
 	}
 
@@ -293,8 +293,8 @@ public class LDrawColor {
 				try {
 					ldc = LDrawParser.parseColour(l);
 					ldrColors.put(ldc.id, ldc);
-				} catch (LDrawException e) {
-					Logger.getAnonymousLogger().severe("[LDRawColor.readFromLibrary] "+ldrconfig+
+				} catch (IllegalArgumentException e) {
+					Logger.getGlobal().severe("[LDRawColor.readFromLibrary] "+ldrconfig+
 							"(line#"+ lnr.getLineNumber()+ ") -> Unable to parse !COLOUR definition in library\n"+
 							e.getLocalizedMessage());
 				}

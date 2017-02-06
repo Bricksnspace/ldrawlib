@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.stream.XMLStreamException;
@@ -84,9 +85,8 @@ public class LDrawPart {
 	 * @param ldrid is LDraw part name (LDraw is case-sensitive, so use lowercase!)
 	 * @param onlyMetadata if true reads only metadata, not primitives
 	 * @throws IOException if LDraw library files isn't readable
-	 * @throws LDrawException if there are parse or format error
 	 */
-	private LDrawPart(String ldrid, boolean onlyMetadata) throws IOException, LDrawException {
+	private LDrawPart(String ldrid, boolean onlyMetadata) throws IOException {
 		
 		if (ldrlib == null) {
 			throw new IllegalStateException("[LDrawPart] LDraw library not initialized");
@@ -105,9 +105,8 @@ public class LDrawPart {
 	 * @param ldrid is LDraw part name (LDraw is case-sensitive, so use lowercase!)
 	 * @param datLines contains lines in LDraw format
 	 * @throws IOException
-	 * @throws LDrawException if there are parse or format error
 	 */
-	private LDrawPart(String ldrid, String datLines) throws IOException, LDrawException {
+	private LDrawPart(String ldrid, String datLines) throws IOException {
 		
 		ldrawid = ldrid;
 		id = getUniqueId();
@@ -298,7 +297,6 @@ public class LDrawPart {
 	 * @param ldrid string with LDraw id (with ".dat"), case insensitive
 	 * @return a LDrawPart object or null if part doesn't exists
 	 * @throws IOException if cannot read part from file/disk
-	 * @throws LDrawException if an error occurs in parsing part/subpart/primitive
 	 */
 	private static LDrawPart getLDrawPart(String ldrid) {
 		
@@ -317,8 +315,6 @@ public class LDrawPart {
 			try {
 				p = new LDrawPart(id, false);
 			} catch (IOException e) {
-				return null;
-			} catch (LDrawException e) {
 				return null;
 			}
 			// put in cache
@@ -340,9 +336,8 @@ public class LDrawPart {
 	 * @param ldrid string with LDraw id (with ".dat"), case insensitive
 	 * @return a LDrawPart object
 	 * @throws IOException if cannot read part from file/disk
-	 * @throws LDrawException if an error occurs in parsing part/subpart/primitive
 	 */
-	public static LDrawPart getLDrawPartMeta(String ldrid) throws IOException, LDrawException {
+	public static LDrawPart getLDrawPartMeta(String ldrid) throws IOException {
 		
 		if (ldrlib == null) {
 			throw new IllegalStateException("[LDrawPart] LDraw library not initialized");
@@ -380,7 +375,6 @@ public class LDrawPart {
 	 * @param ldrid string with LDraw id (with ".dat"), case insensitive
 	 * @return a LDrawPart object
 	 * @throws IOException if cannot read part from file/disk
-	 * @throws LDrawException if an error occurs in parsing part/subpart/primitive
 	 */
 	public static boolean existsPart(String name) {
 		
@@ -400,7 +394,6 @@ public class LDrawPart {
 	 * @param ldrid string with LDraw id (with ".dat"), case insensitive
 	 * @return a LDrawPart object
 	 * @throws IOException if cannot read part from file/disk
-	 * @throws LDrawException if an error occurs in parsing part/subpart/primitive
 	 */
 	public static LDrawPart getPart(String name) {
 		
@@ -415,7 +408,7 @@ public class LDrawPart {
 			p = getInternalUsePart(name);
 		}
 		if (p == null) {
-			Logger.getAnonymousLogger().warning("No such part: "+name);
+			Logger.getGlobal().warning("No such part: "+name);
 		}
 		return p;
 	}
@@ -806,10 +799,7 @@ public class LDrawPart {
 		try {
 			p = new LDrawPart(name,datLines);
 		} catch (IOException e) {
-			Logger.getAnonymousLogger().severe("[newCustomPartFromString] Error reading "+name);
-			return null;
-		} catch (LDrawException e) {
-			Logger.getAnonymousLogger().severe("[newCustomPartFromString] Error reading "+name);
+			Logger.getGlobal().severe("[newCustomPartFromString] Error reading "+name);
 			return null;
 		}
 		return p;
@@ -898,7 +888,7 @@ public class LDrawPart {
 	
 	
 	
-    private void parse(LineNumberReader ldf, boolean onlyMeta) throws IOException, LDrawException {
+    private void parse(LineNumberReader ldf, boolean onlyMeta) throws IOException {
     	
     	String l;
         boolean invNext = false;
@@ -963,11 +953,11 @@ public class LDrawPart {
 						addPart(LDrawParser.parseLineType2(l));
 					break;
 				case MPDFILE:
-					Logger.getAnonymousLogger().warning("[LDrawLib] Illegal command FILE ("+ldrawid+
+					Logger.getGlobal().warning("[LDrawLib] Illegal command FILE ("+ldrawid+
 							") line#"+ ldf.getLineNumber());
 					break;
 				case MPDNOFILE:
-					Logger.getAnonymousLogger().warning("[LDrawLib] Illegal command NOFILE ("+ldrawid+
+					Logger.getGlobal().warning("[LDrawLib] Illegal command NOFILE ("+ldrawid+
 							") line#"+ ldf.getLineNumber());
 					break;
 				case NAME:
@@ -987,11 +977,11 @@ public class LDrawPart {
 					invNext = false;
 					break;
 				case SAVE:
-					Logger.getAnonymousLogger().warning("[LDrawLib] Illegal command SAVE ("+ldrawid+
+					Logger.getGlobal().warning("[LDrawLib] Illegal command SAVE ("+ldrawid+
 							") line#"+ ldf.getLineNumber());
 					break;
 				case STEP:
-					Logger.getAnonymousLogger().warning("[LDrawLib] Illegal command STEP ("+ldrawid+
+					Logger.getGlobal().warning("[LDrawLib] Illegal command STEP ("+ldrawid+
 						") line#"+ ldf.getLineNumber());
 					break;
 				case TRIANGLE:
@@ -1009,9 +999,9 @@ public class LDrawPart {
 				default:
 					break;
 				}
-			} catch (LDrawException lde) {
-				Logger.getAnonymousLogger().severe("[LDrawLib] Parsing error ("+ldrawid+
-						") line#"+ ldf.getLineNumber() +" -> "+ lde.getLocalizedMessage());
+			} catch (IllegalArgumentException lde) {
+				Logger.getGlobal().log(Level.SEVERE,"[LDrawLib] Parsing error ("+ldrawid+
+						") line#"+ ldf.getLineNumber() +" -> "+lde.getLocalizedMessage());
 			}
         }
     }

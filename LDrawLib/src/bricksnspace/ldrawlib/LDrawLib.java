@@ -31,6 +31,8 @@ import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
@@ -451,7 +453,7 @@ public class LDrawLib {
 		if (officialOnly) {
 			LineNumberReader l = ldLibs.get(officialIndex).getPart(ldrawid);
 			if (l == null)
-				System.err.println("[LDLibrary] Unable to get part "+ldrawid+" from official library");
+				Logger.getGlobal().log(Level.WARNING,"[LDLibrary] Unable to get part "+ldrawid+" from official library");
 			return l;
 		}
 		for (int i=0;i<ldLibs.size();i++) {
@@ -462,7 +464,7 @@ public class LDrawLib {
 			if (l != null)
 				return l;
 		}
-		System.err.println("[LDLibrary] Unable to get part "+ldrawid);
+		Logger.getGlobal().log(Level.WARNING,"[LDLibrary] Unable to get part "+ldrawid);
     	return null;
 	}
 	
@@ -487,6 +489,11 @@ public class LDrawLib {
 			}
 			if (z == null || z.getEntry("ldraw/p/stud.dat") == null) {
 				return false;
+			}
+			try {
+				z.close();
+			} catch (IOException e) {
+				;
 			}
 			return true;
 		}

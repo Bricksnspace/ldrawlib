@@ -166,7 +166,7 @@ public class LDStep {
 		}
 		List<LDPrimitive> s = steps.get(p.getStep()-1);
 		if (s == null) {
-			Logger.getAnonymousLogger().warning("[LDStep.delPart] Part with undefined step '"+
+			Logger.getGlobal().warning("[LDStep.delPart] Part with undefined step '"+
 					p.getStep()+"' "+p);
 			return;
 		}

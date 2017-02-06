@@ -274,7 +274,7 @@ public class ConnectionTypes {
 							c.setP1(new Point3D(x, y, z));
 						}
 						catch (NumberFormatException ex) {
-							Logger.getAnonymousLogger().severe("Autodetect XML def" +
+							Logger.getGlobal().severe("Autodetect XML def" +
 									"(line #"+e.getLocation().getLineNumber()+") -> Wrong coordinate value\n"+
 									ex.getLocalizedMessage());
 							c.setP1(new Point3D(0,0,0));
@@ -287,7 +287,7 @@ public class ConnectionTypes {
 							c.setP2(new Point3D(hx, hy, hz));
 						}
 						catch (NumberFormatException ex) {
-							Logger.getAnonymousLogger().severe("Autodetect XML def" +
+							Logger.getGlobal().severe("Autodetect XML def" +
 									"(line #"+e.getLocation().getLineNumber()+") -> Wrong coordinate value\n"+
 									ex.getLocalizedMessage());
 							c.setP2(new Point3D(0,0,0));
