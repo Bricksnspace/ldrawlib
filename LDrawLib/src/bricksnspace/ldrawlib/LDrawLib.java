@@ -24,102 +24,177 @@ package bricksnspace.ldrawlib;
 
 
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
+
+import bricksnspace.dbconnector.DBConnector;
 
 
 /**
  * A library to read LDraw primitives, parts and other files from folder or zipfiles.
  * 
  * Requires only Official part library to work. If supplied, uses unofficial library and user library, too.
- * To disable (momentary or permanently) use of unofficial parts, use setOfficialOnly(true)
+ * First library in list is an official library and is enabled/used as default library.
+ * To disable (momentary or permanently) use of unofficial parts, use setOfficialOnly(true).
+ * Use a database to do full text search and search on metadata. 
+ * Database isn't necessary to use library in programs, only if you need a complex part search.
  * 
  */
 
-
+/*
+ * 
+ */
 
 
 
 public class LDrawLib { 
 
 	private List<LDLibrary> ldLibs;
-	private int officialIndex = -1;
+	public static final int OFFICIALINDEX = 0;
 	
 	private boolean officialOnly = false;
+	private boolean useDatabase = false;
+	private LDrawLibDB ldrDB = null;
 	public static final String LDRAWENV = "LDRAWBASEDIR"; 
 
 	
 	
 	/**
 	 * Creates a list of LDraw libraries, ordered by priority.
-	 * Requires one and only one official LDraw library.
+	 * Requires one and only one LDraw library, and library MUST be an official library.
+	 * Does not update database.
 	 * 
 	 * @param official path to main official library (can be a folder or a zipfile)
+	 * @param dbc database connector, if null no database is used
 	 * @throws ZipException 
 	 * @throws IOException if cannot read library content
+	 * @throws SQLException 
 	 */
-	public LDrawLib(String official) throws ZipException, IOException {
+	public LDrawLib(String official,DBConnector dbc) throws ZipException, IOException, SQLException {
 		
 		ldLibs = new ArrayList<LDLibrary>();
-		ldLibs.add(new LDLibrary(official, true));
-		officialIndex = 0;
+		if (dbc != null) {
+			// use database for part search
+			ldrDB = new LDrawLibDB(dbc);
+			useDatabase = true;
+		}
+		LDLibrary l = new LDLibrary(official, true);
+		if (!l.isLDrawStd())
+			throw new IOException("[LDrawLib] Library isn't an official library.\nPath:"+official);
+		ldLibs.add(l);
+		LDrawColor.readFromLibrary(this);
+		LDrawPart.setLdrlib(this);
 	}
 	
 	
-	
 	/**
-	 * Creates an empty list of LDraw libraries, ordered by priority.
-	 * 
-	 */
-	public LDrawLib() {
-		
-		ldLibs = new ArrayList<LDLibrary>();
-	}
-	
-	
-	
-	/**
-	 * Appends a library to list
-	 * It can't be an official library
-	 *
-	 * @param lib path to library (can be a folder or a zipfile)
+	 * Replace official library<br/>
+	 * Does not update database.
+	 * @param lib path to new library
+	 * @return true if replace was successful, false if library isn't official
 	 * @throws ZipException
-	 * @throws IOException if cannot read library content
+	 * @throws IOException
 	 */
-	public void addLDLib(String lib) throws ZipException, IOException {
+	protected boolean replaceOfficial(String lib) throws ZipException, IOException {
 		
-		ldLibs.add(new LDLibrary(lib, false));
-		officialIndex = getOfficialIndex();
+		LDLibrary l = new LDLibrary(lib, true);
+		if (!l.isLDrawStd())
+			return false;
+		ldLibs.set(OFFICIALINDEX, l);
+		LDrawColor.readFromLibrary(this);
+		return true;
 	}
 	
 	
 	
+	
+	
+	
 	/**
-	 * Appends a library to list, defining if it's official and enabled
+	 * @return the ldrDB or null if database isn't used
+	 */
+	public LDrawLibDB getLdrDB() {
+		return ldrDB;
+	}
+
+
+
+	/**
+	 * @return true if part database is enabled
+	 */
+	public boolean isDatabaseEnabled() {
+		return useDatabase;
+	}
+
+
+
+	/**
+	 * Disable part database in library
+	 */
+	public void disableDatabase() {
+		this.useDatabase = false;
+	}
+
+
+
+	/**
+	 * Enable part database in library. 
+	 */
+	public void enableDatabase() {
+		if (ldrDB == null)
+			throw new IllegalStateException("[LDrawLib] Database not inited");
+		this.useDatabase = true;
+	}
+
+	
+	
+	
+//	public int addStdLDrawLib() throws ZipException, IOException {
+//		
+//		if (!isAlreadyInstalled()) {
+//			throw new IllegalStateException("[addStdLDrawLib] No standard LDraw library in system environment.");
+//		}
+//		LDLibrary l = new LDLibrary(System.getenv(LDRAWENV), true);
+//		if (l.isLDrawStd()) {
+//			ldLibs.add(l);
+//			return ldLibs.indexOf(l);
+//		}
+//		Logger.getGlobal().log(Level.SEVERE,"[addStdLDrawLib] Environment variable point to an invalid library.");
+//		throw new IOException("[addStdLDrawLib] Environment variable point to an invalid library.");
+//	}
+	
+	
+
+	
+	
+	
+	/**
+	 * Appends an unofficial library to list, defining if it's enabled
+	 * Does not update database
 	 * 
 	 * @param lib path to library (folder or zipfile)
-	 * @param official true if library is official 
 	 * @param enabled true if library is enabled
 	 * @throws ZipException
 	 * @throws IOException if cannot read library content
 	 */
-	public void addLDLib(String lib, boolean official, boolean enabled) throws ZipException, IOException {
+	public int addLDLib(String lib, boolean enabled) throws ZipException, IOException {
 		
-		LDLibrary l = new LDLibrary(lib, official);
+		LDLibrary l = new LDLibrary(lib, false);
 		if (!enabled) 
 			l.disable();
 		ldLibs.add(l);
-		officialIndex = getOfficialIndex();
+		return ldLibs.indexOf(l);
+//		officialIndex = getOfficialIndex();
 	}
+
 	
 	
 	
@@ -131,8 +206,28 @@ public class LDrawLib {
 	 */
 	public void removeLDLib(int index) {
 		
-		ldLibs.remove(index);
-		officialIndex = getOfficialIndex();
+		if (index == OFFICIALINDEX) {
+			Logger.getGlobal().log(Level.SEVERE,"[LDrawLib] Attempt to remove default library");
+			return;
+		}
+		if (useDatabase) {
+			try {
+				ldrDB.prepareUpdate(index);
+				for (int i=index+1;i<ldLibs.size();i++) {
+					ldrDB.moveLib(i, i-1);
+				}
+				ldrDB.endUpdate();
+				ldLibs.remove(index);
+			}
+			catch (SQLException sqlex) {
+				Logger.getGlobal().log(Level.SEVERE,"[LDrawLib] Error in removing library index:"+index, sqlex);
+				try {
+					ldrDB.abortUpdate();
+				} catch (SQLException e) {
+					Logger.getGlobal().log(Level.SEVERE,"[LDrawLib] Can't rollback in failed removing library index:"+index, sqlex);
+				}
+			}
+		}
 	}
 	
 	
@@ -172,14 +267,13 @@ public class LDrawLib {
 
 	
 	/**
-	 * Change library status from official to unofficial and vice-versa
+	 * Return true if library follows LDraw standard for folder structure inside zipfile/folder
 	 * @param index library handle
-	 * @param isOfficial true if library is official
+	 * @return true if library follows LDraw folder structure
 	 */
-	public void setOfficial(int index, boolean isOfficial) {
+	public boolean isLDrawStd(int index) {
 		
-		ldLibs.get(index).setOfficial(isOfficial);
-		officialIndex = getOfficialIndex();
+		return ldLibs.get(index).isLDrawStd();
 	}
 	
 	
@@ -193,6 +287,7 @@ public class LDrawLib {
 		
 		return ldLibs.get(index).isOfficial();
 	}
+	
 	
 	
 	
@@ -215,7 +310,14 @@ public class LDrawLib {
 	public void enable(int index) {
 		
 		ldLibs.get(index).enable();
-		officialIndex = getOfficialIndex();
+		if (useDatabase) {
+			try {
+				ldrDB.enableLib(index);
+			}
+			catch (SQLException sqlex) {
+				Logger.getGlobal().log(Level.SEVERE,"[LDrawLib] Error in enabling library index:"+index, sqlex);
+			}
+		}
 	}
 	
 	
@@ -226,8 +328,19 @@ public class LDrawLib {
 	 */
 	public void disable(int index) {
 		
+		if (index == OFFICIALINDEX) {
+			Logger.getGlobal().log(Level.SEVERE,"[LDrawLib] Attempt to disable default library");
+			return;			
+		}
 		ldLibs.get(index).disable();
-		officialIndex = getOfficialIndex();
+		if (useDatabase) {
+			try {
+				ldrDB.disableLib(index);
+			}
+			catch (SQLException sqlex) {
+				Logger.getGlobal().log(Level.SEVERE,"[LDrawLib] Error in disabling library index:"+index, sqlex);
+			}
+		}
 	}
 	
 	
@@ -240,14 +353,21 @@ public class LDrawLib {
 	public void upPriority(int index) {
 		
 		LDLibrary a,b;
-		if (index == 0) {
+		if (index <= 1) {
 			// it is already at max priority
 			return;
 		}
 		a = ldLibs.get(index);
 		b = ldLibs.set(index-1, a);
 		ldLibs.set(index, b);
-		officialIndex = getOfficialIndex();
+		if (useDatabase) {
+			try {
+				ldrDB.changePriority(index,index-1);
+			}
+			catch (SQLException sqlex) {
+				Logger.getGlobal().log(Level.SEVERE,"[LDrawLib] Error in elevating priority: "+index, sqlex);
+			}
+		}
 	}
 	
 	
@@ -260,6 +380,10 @@ public class LDrawLib {
 	 */
 	public void downPriority(int index) {
 		
+		if (index == OFFICIALINDEX) {
+			Logger.getGlobal().log(Level.SEVERE,"[LDrawLib] Attempt to lower priority of default library");
+			return;			
+		}
 		LDLibrary a,b;
 		if ((index + 1) >= ldLibs.size()) {
 			// it is already at minimum priority
@@ -268,40 +392,17 @@ public class LDrawLib {
 		a = ldLibs.get(index+1);
 		b = ldLibs.set(index, a);
 		ldLibs.set(index+1, b);
-		officialIndex = getOfficialIndex();
-	}
-	
-	
-	
-	
-	/** 
-	 * Returns index of first official library in list
-	 * @return index of official library, -1 if no official library defined
-	 */
-	public int getOfficialLibrary() {
-		
-		return officialIndex;
-	}
-	
-	
-	
-	
-	/**
-	 * Updates official library index in event of add/remove/disable/change priority in library list.
-	 * Ignore disable library.
-	 * @return index of first official library or -1 if no official lib in list. 
-	 */
-	private int getOfficialIndex() {
-		
-		for (int i=0;i<ldLibs.size();i++) {
-			if (!ldLibs.get(i).isEnabled())
-				continue;
-			if (ldLibs.get(i).isOfficial())
-				return i;
+		if (useDatabase) {
+			try {
+				ldrDB.changePriority(index,index+1);
+			}
+			catch (SQLException sqlex) {
+				Logger.getGlobal().log(Level.SEVERE,"[LDrawLib] Error in lowering priority: "+index, sqlex);
+			}
 		}
-		return -1;
 	}
 	
+		
 	
 	
 	
@@ -374,7 +475,7 @@ public class LDrawLib {
 		
 		// if only official lib is enabled
 		if (officialOnly) {
-			return ldLibs.get(officialIndex).checkPart(ldrawId);
+			return ldLibs.get(OFFICIALINDEX).checkPart(ldrawId);
 		}
 		for (int i=0;i<ldLibs.size();i++) {
 			// if lib is disabled, ignore
@@ -388,6 +489,7 @@ public class LDrawLib {
 	}
 	
 
+	
 	
 	/** 
 	 * Gets a file from LDraw Library
@@ -403,7 +505,7 @@ public class LDrawLib {
 		
 		// if only official lib is enabled
 		if (officialOnly) {
-			LineNumberReader l = ldLibs.get(officialIndex).getFile(path);
+			LineNumberReader l = ldLibs.get(OFFICIALINDEX).getFile(path);
 			if (l == null)
 				throw new FileNotFoundException("[LDrawLib] File '"+path+"' not found in official library.");
 			return l;
@@ -432,9 +534,9 @@ public class LDrawLib {
 	 */
 	public LineNumberReader getOfficialFile(String path) throws IOException {
 
-		if (officialIndex > 0)
+		if (ldLibs.size() == 0)
 			throw new IllegalStateException("[LDrawLib] No official library in library set.");
-		LineNumberReader l = ldLibs.get(officialIndex).getFile(path);
+		LineNumberReader l = ldLibs.get(0).getFile(path);
 		if (l == null)
 			throw new FileNotFoundException("[LDrawLib] File '"+path+"' not found in official library.");
 		return l;
@@ -451,7 +553,7 @@ public class LDrawLib {
 
 		// if only official lib is enabled
 		if (officialOnly) {
-			LineNumberReader l = ldLibs.get(officialIndex).getPart(ldrawid);
+			LineNumberReader l = ldLibs.get(OFFICIALINDEX).getPart(ldrawid);
 			if (l == null)
 				Logger.getGlobal().log(Level.WARNING,"[LDLibrary] Unable to get part "+ldrawid+" from official library");
 			return l;
@@ -472,52 +574,70 @@ public class LDrawLib {
 	
 	// Some utility functions
 	
-	/**
-	 * Do a rough sanity check on a file or folder to see if it is an official LDraw library
-	 * @param f file/folder to check
-	 * @return true if success
-	 */
-	public static boolean officialSanityCheck(File f) {
+	
+	public static boolean isAlreadyInstalled() {
 		
-		if (f.getName().toLowerCase().endsWith(".zip")) {
-			// a zip library is selected
-			ZipFile z;
-			try {
-				z = new ZipFile(f);
-			} catch (IOException e) {
-				z = null;
-			}
-			if (z == null || z.getEntry("ldraw/p/stud.dat") == null) {
-				return false;
-			}
-			try {
-				z.close();
-			} catch (IOException e) {
-				;
-			}
-			return true;
-		}
-		else {
-			// user selected a file/folder inside library path
-			File l = new File(f.getParent(),"parts");
-			if (l.exists() && l.isDirectory()) {
-				// found library path
-				return true;
-			}
-			else {
-				// if user selected library folder
-				l = new File(f, "parts");
-				if (l.exists() && l.isDirectory()) {
-					// found library path
-					return true;
-				}			
-				else {
-					return false;
-				}
-			}
-		}
-
+		return System.getenv(LDRAWENV) != null;
 	}
+	
+	
+	public static String getInstalled() {
+		
+		return System.getenv(LDRAWENV);
+	}
+	
+	
+//	/**
+//	 * Do a rough sanity check on a file or folder to see if it is an official LDraw library
+//	 * @param f file/folder to check
+//	 * @return true if success
+//	 */
+//	public static boolean officialSanityCheck(File f) {
+//		
+//		boolean res = true;
+//		
+//		if (f.getName().toLowerCase().endsWith(".zip")) {
+//			// a zip library is selected
+//			ZipFile z;
+//			try {
+//				z = new ZipFile(f);
+//			} catch (IOException e) {
+//				return false;
+//			}
+//			if (z.getEntry("ldraw/p/stud.dat") == null) {
+//				if (z.getEntry("parts/s") == null) 
+//					res = false;
+//				else if (!z.getEntry("parts/s").isDirectory())
+//					res = false;
+//			}
+//			try {
+//				z.close();
+//			} catch (IOException e) {
+//				;
+//			}
+//			return res;
+//		}
+//		else {
+//			// user selected a file/folder inside library path
+//			File l = new File(f.getParent(),"parts");
+//			if (l.exists() && l.isDirectory()) {
+//				// found library path
+//				return true;
+//			}
+//			else {
+//				// if user selected library folder
+//				l = new File(f, "parts");
+//				if (l.exists() && l.isDirectory()) {
+//					// found library path
+//					return true;
+//				}			
+//				else {
+//					return false;
+//				}
+//			}
+//		}
+//
+//	}
 	
 
 }

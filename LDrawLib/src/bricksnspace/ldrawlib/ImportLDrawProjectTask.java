@@ -334,6 +334,7 @@ public class ImportLDrawProjectTask extends SwingWorker<Integer, Void> {
                     	currModel.addPart(p);
                     	break;						
 					case STEP:
+						if (! currModel.isStepReady()) currModel.initStep();
                     	currModel.nextStep();
                     	break;
 					case BFC_CCW:
@@ -419,6 +420,7 @@ public class ImportLDrawProjectTask extends SwingWorker<Integer, Void> {
 				try {
 					switch (type) {
 					case STEP:
+						if (! currModel.isStepReady()) currModel.initStep();
 						mainModel.nextStep();
                    		break;
 					case BFC_CCW:
@@ -568,6 +570,7 @@ public class ImportLDrawProjectTask extends SwingWorker<Integer, Void> {
 			try {
 				switch (type) {
 				case STEP:
+					if (! model.isStepReady()) model.initStep();
 					model.nextStep();
 					break;
 				case BFC_CCW:

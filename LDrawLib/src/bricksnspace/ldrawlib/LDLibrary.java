@@ -1,5 +1,5 @@
 /**
-	Copyright 2016 Mario Pascucci <mpascucci@gmail.com>
+	Copyright 2016-2017 Mario Pascucci <mpascucci@gmail.com>
 	This file is part of LDrawLib
 
 	LDrawLib is free software: you can redistribute it and/or modify
@@ -74,6 +74,9 @@ public class LDLibrary {
 	/** true if library is used	*/
 	private boolean enabled = true;
 	
+	/** true if library follows LDraw library folder/subfolder (e.g. parts/ p/ p/48/ etc) standards structure */
+	private boolean isLDrawStd = false;
+	
 	private int type = ZIPFILE;
 	private File libPath = null;
 	private ZipFile libZip = null;
@@ -83,12 +86,17 @@ public class LDLibrary {
 	
 	/**
 	 * returns a new LDraw library source from string
-	 * @param path
-	 * @return
+	 * checks if library follows LDraw library structure 
+	 * and if library is really official
+	 * @param path pathname to library folder or zipfile
+	 * @param official true if library is official LDraw library
+	 * @throws IllegalArgumentException if library is marked official but it isn't
 	 * @throws IOException 
 	 * @throws ZipException 
 	 */
 	public LDLibrary(String path, boolean official) throws ZipException, IOException {
+		
+		boolean hasPrimitives = false, hasParts = false, hasSubParts = false;
 		
 		libPath = new File(path);
 		if (libPath.isDirectory() && libPath.canRead()) {
@@ -114,6 +122,7 @@ public class LDLibrary {
 							continue;
 						}
 						partList.put(key, f.getAbsolutePath());
+						hasPrimitives = true;
 					}
 				}
 			}
@@ -153,6 +162,7 @@ public class LDLibrary {
 							continue;
 						}
 						partList.put(key, f.getAbsolutePath());
+						hasParts = true;
 					}
 				}
 			}
@@ -166,6 +176,7 @@ public class LDLibrary {
 							continue;
 						}
 						partList.put(key, f.getAbsolutePath());
+						hasSubParts = true;
 					}
 				}
 			}
@@ -188,6 +199,18 @@ public class LDLibrary {
 						continue;
 					}
 					partList.put(key, ze.getName());
+					if (key.startsWith(PARTPATH+SUBPARTPATH)) {
+						hasSubParts = true;
+						continue;
+					}
+					if (key.startsWith(PARTPATH)) {
+						hasParts = true;
+						continue;
+					}
+					if (key.startsWith(PRIMITIVESPATH)) {
+						hasPrimitives = true;
+						continue;
+					}
 					//System.out.println(key+" - "+ze.getName());
 				}
 			}
@@ -195,6 +218,15 @@ public class LDLibrary {
 		}
 		else 
 			throw new IOException("'"+path+"' isnt't a file or a directory, or cannot read it.");
+		if (hasParts && hasPrimitives && hasSubParts) {
+			// library follows standard LDraw folder structure
+			isLDrawStd = true;
+		}
+		if (official) {
+			if (!isLDrawStd || !partList.containsKey(LDrawColor.LDRCONFIG.toLowerCase())) {
+				throw new IllegalArgumentException("[LDLibrary] Library marked as official does not appears as official LDraw library.\nLibrary: "+path);
+			}
+		}
 		this.official = official;
 	}
 	
@@ -230,6 +262,15 @@ public class LDLibrary {
 
 	
 	
+	/**
+	 * @return true if library follows LDraw standard directory structures 
+	 */
+	public boolean isLDrawStd() {
+		return isLDrawStd;
+	}
+
+
+
 	/**
 	 * Enable library
 	 */

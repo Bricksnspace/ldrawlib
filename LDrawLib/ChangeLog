@@ -1,3 +1,29 @@
+2017-03-07  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawColor.java (getColorById): wrong blended color selection: fixed
+
+2017-02-23  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawLibDB.java: Part database library
+	* src/bricksnspace/ldrawlib/LDrawLib.java: Merged database functions inside library
+	 
+2017-02-17  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/ImportLDrawProjectTask.java: updated for stepper system chenges
+	* src/bricksnspace/ldrawlib/LDrawPart.java (initStep): removed stepper in all parts, now must be explicitly inited
+	(nextStep): added check on stepper system
+	(prevStep): added check on stepper system
+	(getPartsInStep): added check on stepper system
+	(moveToCurrStep): added check on stepper system
+	(moveToStep): added check on stepper system
+	(getCurrStep): added check on stepper system
+	(getNumSteps): added check on stepper system
+	(goFirstStep): added check on stepper system
+	(goLastStep): added check on stepper system
+	(addPart): added check on stepper system
+	(delPart): added check on stepper system
+	(delPartById): added check on stepper system
+
 2016-10-26  Mario Pascucci  <mpascucci@gmail.com>
 
 	* LDrawColor.java (getBlendedColor): added function to create a blended color from standard colors

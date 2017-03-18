@@ -65,12 +65,14 @@ public class LDrawPart {
 	private String category;
 	private String keywords;
 	private Date lastUpdate;
+	/** used only as metadata from part search database */
+	private boolean fromOfficial = false;
 	private String partTypeString = "";
 	private String license = "";
 	private LDrawPartType partType = LDrawPartType.MODEL;
 	private List<LDPrimitive> primitives = new ArrayList<LDPrimitive>();
 	private Map<Integer,LDPrimitive> partById = new HashMap<Integer,LDPrimitive>();
-	private LDStep stepper = new LDStep();
+	private LDStep stepper = null; //new LDStep();
 	private static LDrawLib ldrlib = null;
 	private static Map<String,LDrawPart> partCache = new HashMap<String,LDrawPart>();
 	private static Map<String,LDrawPart> customPartCache = new HashMap<String,LDrawPart>();
@@ -95,6 +97,7 @@ public class LDrawPart {
 		id = getUniqueId();
         LineNumberReader ldf = ldrlib.getPart(ldrawid);
 		parse(ldf, onlyMetadata);
+//		fromOfficial = ldrlib.isFromOfficial(ldrawid);
 		ldf.close();
 	}
 	
@@ -542,14 +545,14 @@ public class LDrawPart {
 		if (old != null) {
 			// put it in same position
 			int i = primitives.indexOf(old);
-			stepper.delPart(old);
+			if (stepper != null) stepper.delPart(old);
 			primitives.set(i, p);
 		}
 		else {
 			// add new part to list
 			primitives.add(p);
 		}
-		stepper.addPart(p);
+		if (stepper != null) stepper.addPart(p);
 		return old;
 	}
 
@@ -564,7 +567,7 @@ public class LDrawPart {
 	public LDPrimitive delPart(LDPrimitive p) {
 		
 		primitives.remove(p);
-		stepper.delPart(p);
+		if (stepper != null) stepper.delPart(p);
 		return partById.remove(p.getId());
 	}
 	
@@ -577,7 +580,7 @@ public class LDrawPart {
 	public LDPrimitive delPartById(int id) {
 		
 		primitives.remove(partById.get(id));
-		stepper.delPart(partById.get(id));
+		if (stepper != null) stepper.delPart(partById.get(id));
 		return partById.remove(id);
 	}
 	
@@ -597,6 +600,26 @@ public class LDrawPart {
 
 	
 	
+	/** 
+	 * Init stepper system for models
+	 */
+	public void initStep() {
+		
+		if (stepper != null) Logger.getGlobal().warning("[initStep] stepper is already defined, overwriting it...");
+		stepper = new LDStep();
+	}
+	
+	
+	/**
+	 * Checks in stepper system is ready
+	 * @return true if stepper is ready
+	 */
+	public boolean isStepReady() {
+		return stepper != null;
+	}
+	
+	
+	
 	/**
 	 * Utility function for STEP
 	 * <p>
@@ -604,6 +627,8 @@ public class LDrawPart {
 	 */
 	public int nextStep() {
 		
+		if (stepper == null)
+			throw new IllegalStateException("Stepper not inited");
 		stepper.nextStep();
 		if (stepper.getCurrStep() == 1) {
 			// it is first step, moves all parts to step #1
@@ -620,6 +645,8 @@ public class LDrawPart {
 	
 	public int prevStep() {
 		
+		if (stepper == null)
+			throw new IllegalStateException("Stepper not inited");
 		return stepper.prevStep();
 	}
 
@@ -627,12 +654,16 @@ public class LDrawPart {
 	
 	public Collection<LDPrimitive> getPartsInStep(int n) {
 		
+		if (stepper == null)
+			throw new IllegalStateException("Stepper not inited");
 		return stepper.getStep(n);
 	}
 	
 	
 	public void moveToCurrStep(LDPrimitive p) {
 		
+		if (stepper == null)
+			throw new IllegalStateException("Stepper not inited");
 		stepper.delPart(p);
 		stepper.addPart(p);
 	}
@@ -640,29 +671,42 @@ public class LDrawPart {
 	
 	public void moveToStep(LDPrimitive p, int s) {
 		
+		if (stepper == null)
+			throw new IllegalStateException("Stepper not inited");
 		stepper.moveToStep(p, s);
 	}
 	
 	
 	
 	public int getCurrStep() {
+		
+		if (stepper == null)
+			throw new IllegalStateException("Stepper not inited");
 		return stepper.getCurrStep();
 	}
 	
 	
 	
 	public int getNumSteps() {
+		
+		if (stepper == null)
+			throw new IllegalStateException("Stepper not inited");
 		return stepper.getNumSteps();
 	}
 	
 	
 	
 	public int goFirstStep() {
+
+		if (stepper == null)
+			throw new IllegalStateException("Stepper not inited");
 		return stepper.goFirstStep();
 	}
 
 
 	public int goLastStep() {
+		if (stepper == null)
+			throw new IllegalStateException("Stepper not inited");
 		return stepper.goLastStep();
 	}
 
@@ -761,7 +805,8 @@ public class LDrawPart {
 
 
 	public static LDrawPart getPartMeta(String ldrawid, String partName, String author,
-			String description, String category, String keywords) {
+			String description, String category, String keywords, 
+			boolean fromOfficial) {
 		
 		LDrawPart p = new LDrawPart();
 		p.ldrawid = ldrawid;
@@ -770,12 +815,22 @@ public class LDrawPart {
 		p.description = description;
 		p.category = category;
 		p.keywords = keywords;
+		p.fromOfficial = fromOfficial;
 		return p;
 	}
 	
 	
 
 	
+	/**
+	 * @return the fromOfficial
+	 */
+	public boolean isFromOfficial() {
+		return fromOfficial;
+	}
+
+
+
 	public static LDrawPart newEmptyPart() {
 		
 		LDrawPart p = new LDrawPart();
@@ -827,6 +882,7 @@ public class LDrawPart {
 		p.id = getUniqueId();
 		p.ldrawid = name;
 		p.partName = name;
+		p.initStep();		// FIXME: verify use of stepper
 		customPartCache.put(name, p);
 		ConnectionPoint.removeFromCache(name);
 		return p;

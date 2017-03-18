@@ -72,7 +72,7 @@ public class LDLibTableModel extends AbstractTableModel {
 	@Override
 	public boolean isCellEditable(int row, int col) {
 
-		if (col == 0 || col == 1 || col == 2) 
+		if (col == 0 || col == 1 || col == 2 || col == 3 || row == 0) 
 	        return false;
 	    else 
 	        return true;
@@ -107,9 +107,9 @@ public class LDLibTableModel extends AbstractTableModel {
 	public void setValueAt(Object value, int row, int col) {
 		
 		switch (col) {
-		case 3:
-			ldl.setOfficial(row, (Boolean) value);
-			break;
+//		case 3:
+//			ldl.setOfficial(row, (Boolean) value);
+//			break;
 		case 4:
 			if ((Boolean) value) 
 				ldl.enable(row);

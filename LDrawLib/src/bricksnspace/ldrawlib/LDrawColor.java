@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 public class LDrawColor {
 	
 	
-	private static final String ldrconfig = "LDConfig.ldr";
+	public static final String LDRCONFIG = "LDConfig.ldr";
 	public static final int INVALID_COLOR = -1;
 	public static final int CURRENT = 16;
 	public static final int EDGE = 24;
@@ -89,12 +89,12 @@ public class LDrawColor {
 	 */
 	static public Color getColorById(int id) {
 
-		if (id < 256) {
+		if (ldrColors.containsKey(id)) {
 			Color c = ldrColors.get(id).c;
 			if (c != null)
 				return c;
 		}
-		else if (id < 0x200) {
+		else if (id >= 0x100 && id < 0x200) {
 			// it is a blended color
 			return getBlendedColor(id);
 		}
@@ -113,12 +113,12 @@ public class LDrawColor {
 	 */
 	static public Color getEdgeColorById(int id) {
 		
-		if (id < 256) {
+		if (ldrColors.containsKey(id)) {
 			Color c = ldrColors.get(id).edge;
 			if (c != null)
 				return c;
 		}
-		else if (id < 0x200) {
+		else if (id >= 0x100 && id < 0x200) {
 			// it is a blended color
 			Logger.getGlobal().warning("Invalid blended edge color: "+id);
 			return getBlendedColor(id);
@@ -143,9 +143,9 @@ public class LDrawColor {
 	 */
 	static public boolean isLDrawColor(int id) {
 		
-		if (id < 256) 
-			return ldrColors.containsKey(id);
-		else if (id < 0x200)
+		if (ldrColors.containsKey(id)) 
+			return true;
+		else if (id >= 0x100 && id < 0x200)
 			// blended color
 			return true;
 		else if (id >= 0x2000000 && id < 0x3000000)
@@ -164,17 +164,10 @@ public class LDrawColor {
 	 */
 	static public LDrawColor getById(int id) {
 		
-		LDrawColor c;
-		
-		if (id < 256) { 
-			c = ldrColors.get(id);
-			if (c == null) {
-				Logger.getGlobal().warning("[LdrawColor] Unknown color: "+id);
-				return ldrColors.get(INVALID_COLOR);
-			}
-			return c;
+		if (ldrColors.containsKey(id)) { 
+			return ldrColors.get(id);
 		}
-		else if (id < 0x200) {
+		else if (id >= 0x100 && id < 0x200) {
 			// blended color
 			return newLDrawColor("Blended color "+id,id,getBlendedColor(id),getColorById(EDGE));
 		}
@@ -279,11 +272,13 @@ public class LDrawColor {
 	public static void readFromLibrary(LDrawLib ldlib) throws IOException {
 		
 		String l;
+		Map<Integer,LDrawColor> nc = new HashMap<Integer, LDrawColor>();
+		
 		
 		if (ldlib == null) {
 			throw new IllegalArgumentException("[LDRawLib.readFromLibrary] LDraw library object cannot be null");
 		}
-		LineNumberReader lnr = ldlib.getOfficialFile(ldrconfig);
+		LineNumberReader lnr = ldlib.getOfficialFile(LDRCONFIG);
 		try {
 			while ((l = lnr.readLine()) != null) {
 				LDrawCommand cmd = LDrawParser.parseCommand(l);
@@ -292,19 +287,20 @@ public class LDrawColor {
 				LDrawColor ldc;
 				try {
 					ldc = LDrawParser.parseColour(l);
-					ldrColors.put(ldc.id, ldc);
+					nc.put(ldc.id, ldc);
 				} catch (IllegalArgumentException e) {
-					Logger.getGlobal().severe("[LDRawColor.readFromLibrary] "+ldrconfig+
+					Logger.getGlobal().severe("[LDRawColor.readFromLibrary] "+LDRCONFIG+
 							"(line#"+ lnr.getLineNumber()+ ") -> Unable to parse !COLOUR definition in library\n"+
 							e.getLocalizedMessage());
 				}
 			}
 		} catch (IOException exc) {
 			throw new IOException("[LDrawLib] Unable to read LDraw colors\n"
-					+ "File: " + ldrconfig + " line #: "+lnr.getLineNumber());
+					+ "File: " + LDRCONFIG + " line #: "+lnr.getLineNumber());
 		}
 		// put invalid color code and color schema (deep black with red lines)
-		ldrColors.put(-1, new LDrawColor(-1, Color.BLACK, Color.RED, "Invalid/Unknown color"));
+		nc.put(-1, new LDrawColor(-1, Color.BLACK, Color.RED, "Invalid/Unknown color"));
+		ldrColors = nc;
 	}
 	
 	

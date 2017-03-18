@@ -38,9 +38,9 @@ package bricksnspace.ldrawlib;
  * 			if step == 0 -> no step handling
  * 			else -> handle step (insert in LDStep list, checks for old step)
  * 
- * TODO: dialog to list and select libraries
- * FIXME: can add more official libs?
- * TODO: !history checks for updates
+ * done: dialog to list and select libraries
+ * done: can add more official libs? -> no, only one, but you can add more as "unofficial"
+ * done: !history checks for updates
  * Question: adds last modified date in cxml file? No, better checks for last date for connection update 
  * 
  * LDraw parts with anomalies
