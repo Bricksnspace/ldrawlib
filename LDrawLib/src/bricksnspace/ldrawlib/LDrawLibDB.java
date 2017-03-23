@@ -239,6 +239,24 @@ public class LDrawLibDB {
 	
 	
 	/**
+	 * Refresh all indexes
+	 * @throws SQLException
+	 */
+	public void refreshIndexes() throws SQLException {
+		
+		db.deleteFTS(table);
+		db.createFTS(table, FTSfields);
+		Statement st = db.createStatement();
+		st.executeUpdate("DROP INDEX IF EXISTS ldr_ldrid");
+		st.executeUpdate("DROP INDEX IF EXISTS ldr_ldcat");
+		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldrid ON "+table+"(ldrid)");
+		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldcat ON "+table+"(ldcategory)");		
+	}
+	
+	
+	
+	
+	/**
 	 * Remove all parts from table
 	 * @throws SQLException
 	 */

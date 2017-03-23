@@ -1,3 +1,7 @@
+2017-03-23  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawLibDB.java (refreshIndexes): new method to refresh indexes
+
 2017-03-07  Mario Pascucci  <mpascucci@gmail.com>
 
 	* src/bricksnspace/ldrawlib/LDrawColor.java (getColorById): wrong blended color selection: fixed
