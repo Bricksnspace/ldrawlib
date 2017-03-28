@@ -482,9 +482,13 @@ public class LDLibrary {
         	// try primitive in "p/" folder
         	if (RESOLUTION == LORES) {
         		ze = partList.get(LORESPRIMITIVESPATH+ldrid);
+        		if (ze == null)  // fallback 
+            		ze = partList.get(PRIMITIVESPATH+ldrid);
  	       	}
 	    	else if (RESOLUTION == HIRES) {
 	    		ze = partList.get(HIRESPRIMITIVESPATH+ldrid);
+        		if (ze == null)  // fallback 
+            		ze = partList.get(PRIMITIVESPATH+ldrid);
 	    	}
 	    	else {
         		ze = partList.get(PRIMITIVESPATH+ldrid);

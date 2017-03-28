@@ -1,5 +1,5 @@
 /*
-	Copyright 2014-2015 Mario Pascucci <mpascucci@gmail.com>
+	Copyright 2014-2017 Mario Pascucci <mpascucci@gmail.com>
 	This file is part of LDrawLib
 
 	LDrawLib is free software: you can redistribute it and/or modify
@@ -57,12 +57,10 @@ public class LDPrimitive {
 	public static final Matrix3D IDENTITY = new Matrix3D(); 
 	private Matrix3D matrix = IDENTITY;			// transformation matrix
 	private boolean invert;
-	//private LDrawPart ldrPart;
 	private ConnectionPoint[] connPoints; 
 	
 	// global id
 	private static int globalId = 0;
-//	private static Map<Integer,LDPrimitive> globalList = new HashMap<Integer,LDPrimitive>();
 
 	
 	
@@ -73,13 +71,10 @@ public class LDPrimitive {
 		color = p.getColor();
 		colorIndex = p.getColorIndex();
 		invert = p.isInvert();
-//		if (p.getNormalFV() != null)
-//			normal = p.getNormalFV().clone();
 		if (p.getPointsFV() != null)
 			vertex = p.getPointsFV().clone();
 		if (p.getType() == LDrawCommand.REFERENCE)
 			matrix = p.getTransformation().getCopy();
-		//ldrPart = p.ldrPart;
 		id = p.id;
 		step = p.step;
 		if (p.connPoints != null) {
@@ -137,7 +132,6 @@ public class LDPrimitive {
 		default:
 			throw new IllegalArgumentException("[LDPrimitive] Primitive type not allowed: "+this.type.toString());
 		}
-		//ldrPart = LDrawPart.getPartFromPrimitive(this);
 		this.colorIndex = c;
 	}
 
@@ -151,7 +145,6 @@ public class LDPrimitive {
 		partId = "Local color "+c.getId();
 		type = LDrawCommand.COLOUR;
 		color = c;
-		//ldrPart = LDrawPart.getPartFromPrimitive(this);
 	}
 
 	
@@ -244,14 +237,6 @@ public class LDPrimitive {
 	 * design primitives
 	 */
 	
-//	/**
-//	 * creates a new STEP primitive
-//	 * @return
-//	 */
-//	public static LDPrimitive newStep() {
-//		return new LDPrimitive(LDrawCommand.STEP,LDrawColor.INVALID_COLOR,null);
-//	}
-	
 	
 	public static LDPrimitive newBfcInvertnext() {
 		return new LDPrimitive(LDrawCommand.BFC_INVERTNEXT,LDrawColor.INVALID_COLOR,null);
@@ -301,29 +286,6 @@ public class LDPrimitive {
 	
 
 	
-//	/* 
-//	 * compute normal, not normalized.
-//	 */
-//	public static float[] calcNormal(
-//			float x,float y,float z,
-//			float x1,float y1,float z1,
-//			float x2,float y2,float z2) {
-//
-//		float v1x,v1y,v1z,v2x,v2y,v2z,xn,yn,zn;
-//
-//		v1x = x1 - x;
-//		v1y = y1 - y;
-//		v1z = z1 - z;
-//		v2x = x2 - x1;
-//		v2y = y2 - y1;
-//		v2z = z2 - z1;
-//		xn = v1y * v2z - v1z * v2y;
-//		yn = v1z * v2x - v1x * v2z;
-//		zn = v1x * v2y - v1y * v2x;
-//		return new float[] {xn,yn,zn};
-//	}
-
-
 	
 	public static LDPrimitive newTriangle(int color, boolean isClockWise,
 			float x1, float y1, float z1,
@@ -341,12 +303,6 @@ public class LDPrimitive {
 		l.vertex[7] = y3;
 		l.vertex[8] = z3;
 		l.invert = isClockWise;
-//		if (!isClockWise) {
-//			l.normal = calcNormal(x1, y1, z1, x2, y2, z2, x3, y3, z3);
-//		}
-//		else {
-//			l.normal = calcNormal(x3, y3, z3, x2, y2, z2, x1, y1, z1);
-//		}
 		return l;
 	}
 	
@@ -372,12 +328,6 @@ public class LDPrimitive {
 		l.vertex[10] = y4;
 		l.vertex[11] = z4;
 		l.invert = isClockWise;
-//		if (!isClockWise) {
-//			l.normal = calcNormal(x1, y1, z1, x2, y2, z2, x3, y3, z3);
-//		}
-//		else {
-//			l.normal = calcNormal(x3, y3, z3, x2, y2, z2, x1, y1, z1);
-//		}
 		return l;
 	}
 	
@@ -427,12 +377,7 @@ public class LDPrimitive {
     }
     
 
-//    public static LDPrimitive getByGlobalId(int gid) {
-//    	
-//    	return globalList.get(gid);
-//    }
-//	
-//	
+
     /**
      *  returns an exact clone, same global id 
      */
@@ -615,20 +560,10 @@ public class LDPrimitive {
 		return vertex;
 	}
 	
-//	
-//	public float[] getNormalFV() {
-//		
-//		return normal;
-//	}
 	
 	//////////////////////////////////////////////////
-	// linked LDraw Part info
+	//  Part info
 	
-//	public String getPartName() {
-//		
-//		return ldrPart.getPartName();
-//	}
-//	
 	
 	public String getDescription() {
 

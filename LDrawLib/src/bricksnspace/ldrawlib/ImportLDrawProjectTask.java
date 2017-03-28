@@ -420,7 +420,7 @@ public class ImportLDrawProjectTask extends SwingWorker<Integer, Void> {
 				try {
 					switch (type) {
 					case STEP:
-						if (! currModel.isStepReady()) currModel.initStep();
+						if (! mainModel.isStepReady()) mainModel.initStep();
 						mainModel.nextStep();
                    		break;
 					case BFC_CCW:

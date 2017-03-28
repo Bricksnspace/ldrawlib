@@ -1,3 +1,9 @@
+2017-03-28  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/PartQueryable.java: moved to LDrawLib
+	* src/bricksnspace/ldrawlib/ConnGrid.java: moved to LDrawLib
+	* src/bricksnspace/ldrawlib/ConnectionHandler.java: moved to LDrawLib
+
 2017-03-23  Mario Pascucci  <mpascucci@gmail.com>
 
 	* src/bricksnspace/ldrawlib/LDrawLibDB.java (refreshIndexes): new method to refresh indexes
