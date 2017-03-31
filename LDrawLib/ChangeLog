@@ -1,3 +1,9 @@
+2017-03-31  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawLibDB.java (endUpdate): changed order on create/delete index to avoid undesired open transaction commit
+	(abortUpdate): changed order on create/delete index to avoid undesired open transaction commit
+	(prepareUpdate): changed order on create/delete index to avoid undesired open transaction commit
+
 2017-03-28  Mario Pascucci  <mpascucci@gmail.com>
 
 	* src/bricksnspace/ldrawlib/PartQueryable.java: moved to LDrawLib

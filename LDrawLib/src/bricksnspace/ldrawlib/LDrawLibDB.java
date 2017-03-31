@@ -196,10 +196,11 @@ public class LDrawLibDB {
 				" ("+fieldsOrder+") VALUES " +
 				"(?,?,?,?,?,?,?,?,?,?,?,?,?)" +
 				";");
-		db.autocommitDisable();
 		st = db.createStatement();
+		// drop "something" commits an open transaction
 		st.executeUpdate("DROP INDEX IF EXISTS ldr_ldrid");
 		st.executeUpdate("DROP INDEX IF EXISTS ldr_ldcat");
+		db.autocommitDisable();
 		removeLib(index);
 	}
 	
@@ -213,10 +214,10 @@ public class LDrawLibDB {
 		
 		Statement st = db.createStatement();
 
-		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldrid ON "+table+"(ldrid)");
-		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldcat ON "+table+"(ldcategory)");
 		db.commit();
 		db.autocommitEnable();
+		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldrid ON "+table+"(ldrid)");
+		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldcat ON "+table+"(ldcategory)");
 		db.createFTS(table, FTSfields);
 		insertPS.close();
 	}
@@ -230,8 +231,10 @@ public class LDrawLibDB {
 	public void abortUpdate() throws SQLException {
 		
 		db.rollback();
-		// FIXME: verify that indexes are "rolled back" by aborted transaction
 		db.autocommitEnable();
+		Statement st = db.createStatement();
+		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldrid ON "+table+"(ldrid)");
+		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldcat ON "+table+"(ldcategory)");
 		insertPS.close();
 		db.createFTS(table, FTSfields);
 	}
