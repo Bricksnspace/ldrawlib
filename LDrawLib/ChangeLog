@@ -1,3 +1,7 @@
+2017-04-07  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawLibDB.java (initDB): moved checks/creation of index on startup
+
 2017-03-31  Mario Pascucci  <mpascucci@gmail.com>
 
 	* src/bricksnspace/ldrawlib/LDrawLibDB.java (endUpdate): changed order on create/delete index to avoid undesired open transaction commit

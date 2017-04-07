@@ -46,14 +46,6 @@ import bricksnspace.dbconnector.DBConnector;
 public class LDrawLibDB {
 
 	
-	/*
-	 * done: select only from "enabled" library parts
-	 * done: functions to enable/disable a single library
-	 * TODO: functions to change official flag
-	 * done: search results ordered on priority
-	 */
-	
-	
 	// database vars
 	protected static DBConnector db;
 	//Connection conn;
@@ -133,6 +125,9 @@ public class LDrawLibDB {
 			db.deleteFTS(table);
 			db.createFTS(table, FTSfields);
 		}
+		// creates indexes to speedup search
+		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldrid ON "+table+"(ldrid)");
+		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldcat ON "+table+"(ldcategory)");
 		updatedPartsPS = db.prepareStatement("SELECT id," + fieldsOrder +
 				" FROM "+table+" WHERE lastupdate >= ? AND NOT colored AND NOT obsolete AND enabled ORDER BY priority ASC");
 		return true;
@@ -176,9 +171,6 @@ public class LDrawLibDB {
 				"priority INT," +
 				"enabled BOOL" +
 				"); COMMIT ");
-		// creates indexes to speedup search
-		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldrid ON "+table+"(ldrid)");
-		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldcat ON "+table+"(ldcategory)");
 	}
 
 	
