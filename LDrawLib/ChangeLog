@@ -1,3 +1,7 @@
+2017-04-11  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawLibDB.java (getPart): Changed to return only one part, without warning or exception if there are duplicates
+
 2017-04-07  Mario Pascucci  <mpascucci@gmail.com>
 
 	* src/bricksnspace/ldrawlib/LDrawLibDB.java (initDB): moved checks/creation of index on startup

@@ -596,22 +596,20 @@ public class LDrawLibDB {
 	
 
 	/**
-	 * return single part metadata, if exist
+	 * Return single part metadata, if exist.<br/> 
+	 * If there are duplicated definitions, return first part in library priority order
 	 * @param ldrid part LDraw id, with ".dat"
 	 * @return part metadata or null if no part was found
 	 * @throws SQLException
 	 */
-	public static ArrayList<LDrawPart> getPart(String ldrid) throws SQLException {
+	public static LDrawPart getPart(String ldrid) throws SQLException {
 
-
-		Statement st;
-		ResultSet rs;
 		ArrayList<LDrawPart> dat = new ArrayList<LDrawPart>();
 		
 		if (db == null) 
 			throw new IllegalStateException("[getPart] DBConnector not initialized");
-		st = db.createStatement();
-		rs = st.executeQuery("SELECT id," + fieldsOrder +
+		Statement st = db.createStatement();
+		ResultSet rs = st.executeQuery("SELECT id," + fieldsOrder +
 			" FROM "+table+" WHERE ldrid='" + ldrid + "' AND enabled ORDER BY priority ASC");
 		while (rs.next()) {
 			// fetch and assign rows to an Array list
@@ -625,7 +623,11 @@ public class LDrawLibDB {
 					rs.getBoolean("official")
 					));
 		}
-		return dat;
+		//if (dat.size() > 1) 
+		// throw new SQLException("[getPart] Duplicated part definition in '"+table+"' table: "+ldrid);
+		if (dat.size() == 0)
+			return null;
+		return dat.get(0);
 	}
 
 	
