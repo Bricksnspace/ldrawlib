@@ -1,3 +1,12 @@
+2017-04-13  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawLibDB.java: table name is now public
+
+2017-04-12  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawLibDB.java (LDrawLibDB): new test for full text index
+	(initDB): removed useless full text index test 
+
 2017-04-11  Mario Pascucci  <mpascucci@gmail.com>
 
 	* src/bricksnspace/ldrawlib/LDrawLibDB.java (getPart): Changed to return only one part, without warning or exception if there are duplicates

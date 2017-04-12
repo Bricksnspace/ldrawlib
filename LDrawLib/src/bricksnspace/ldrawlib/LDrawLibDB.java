@@ -56,7 +56,7 @@ public class LDrawLibDB {
 	private boolean includeColored = false;
 	private PreparedStatement updatedPartsPS;
 	private final static String fieldsOrder = "ldrid,partname,author,description,category,keywords,obsolete,colored,lastupdate,ldcategory,official,priority,enabled";
-	private final static String table = "ldrawlibdb";
+	public final static String table = "ldrawlibdb";
 	private final static String FTSfields = "LDRID,PARTNAME,DESCRIPTION,CATEGORY,KEYWORDS,ldcategory";
 	private final static String DBVERCONSTANT = "LDRAWDBVER";
 	private final static int DBVERSION = 1;
@@ -84,7 +84,10 @@ public class LDrawLibDB {
 				}
 			}
 		}
-	    	    
+		if (!db.checkFTS(table,FTSfields)) {
+			db.createFTS(table, FTSfields);
+			Logger.getGlobal().log(Level.INFO, "Created Full Text Index");
+		}
 	    inited = initDB();
 	}
 
@@ -112,19 +115,6 @@ public class LDrawLibDB {
 		
 		st = db.createStatement();
 		
-		try {
-			ResultSet rs = st.executeQuery("SELECT * FROM FTL_SEARCH_DATA('brick',0,0) " +
-					"WHERE table='"+table.toUpperCase()+"' LIMIT 1");
-			if (!rs.next()) {
-				db.deleteFTS(table);
-				db.createFTS(table, FTSfields);
-			}
-		} catch (SQLException ex) {
-			// there is a problem with FT indexes, so rebuild all
-			Logger.getGlobal().log(Level.WARNING,"[initDB] Try to rebuild full text index.", ex);
-			db.deleteFTS(table);
-			db.createFTS(table, FTSfields);
-		}
 		// creates indexes to speedup search
 		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldrid ON "+table+"(ldrid)");
 		st.executeUpdate("CREATE INDEX IF NOT EXISTS ldr_ldcat ON "+table+"(ldcategory)");
