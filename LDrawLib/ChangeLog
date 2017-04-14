@@ -1,3 +1,7 @@
+2017-04-14  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LdrTableModel.java: moved from BrickUtils
+
 2017-04-13  Mario Pascucci  <mpascucci@gmail.com>
 
 	* src/bricksnspace/ldrawlib/LDrawLibDB.java: table name is now public
