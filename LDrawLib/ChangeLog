@@ -1,3 +1,14 @@
+2017-04-20  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawColor.java (isOfficialColor): checks if color is in official library
+
+2017-04-19  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawParser.java (parseColour): added code to detect color type
+	(searchKeyword): search for a keyword in a string array
+	* src/bricksnspace/ldrawlib/LDrawColor.java: now uses LDrawColorType enum
+	* src/bricksnspace/ldrawlib/LDrawColorType.java: added color type enum
+
 2017-04-14  Mario Pascucci  <mpascucci@gmail.com>
 
 	* src/bricksnspace/ldrawlib/LdrTableModel.java: moved from BrickUtils

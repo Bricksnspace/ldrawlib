@@ -374,6 +374,19 @@ public class LDrawParser {
 	
 
 	
+	private static int searchKeyword(String[] l, String kw) {
+		
+		int i;
+		
+		for (i=0;i<l.length;i++) {
+			if (l[i].equalsIgnoreCase(kw))
+				return i;
+		}
+		return -1;
+	}
+	
+
+	
 	public static LDrawCommand parseCommand(String l) {
 		
 	    String[] ld = l.trim().split("\\s+");
@@ -718,12 +731,31 @@ public class LDrawParser {
 		String[] ld = l.trim().split("\\s+");
 
 		Matcher colorMatch = colourPattern.matcher(l);
+		LDrawColorType type = LDrawColorType.SOLID;
         if (colorMatch.lookingAt()) {
         	String name = colorMatch.group(1).trim();	// colour identifier
         	int idx = searchToken(ld,"code");
         	int cx = searchToken(ld,"value");
         	int ex = searchToken(ld, "edge");
         	int ax = searchToken(ld, "alpha");
+        	if (searchKeyword(ld, "rubber") >= 0) {
+        		type = LDrawColorType.RUBBER;
+        	}
+        	else if (searchKeyword(ld, "chrome") >= 0) {
+        		type = LDrawColorType.CHROME;
+        	}
+        	else if (searchKeyword(ld, "metal") >= 0) {
+        		type = LDrawColorType.METAL;
+        	}
+        	else if (searchKeyword(ld, "pearlescent") >= 0) {
+        		type = LDrawColorType.PEARL;
+        	}
+        	else if (searchKeyword(ld, "glitter") >= 0 || searchKeyword(ld, "speckle") >= 0) {
+        		type = LDrawColorType.GLITTER;
+        	}
+//        	else if (searchToken(ld, "speckle") >= 0) {
+//        		type = LDrawColorType.SPECKLE;
+//        	}
         	if (idx < 0 || cx < 0 || ex < 0) {
         		throw new IllegalArgumentException("Invalid !COLOUR specification: " + l);
         	}
@@ -736,6 +768,12 @@ public class LDrawParser {
     			catch (NumberFormatException exc) {
     				throw new IllegalArgumentException("Invalid ALPHA value: " +ld[ax]);
     			}
+    		}
+    		if (a == 240 && type == LDrawColorType.SOLID) {
+    			type = LDrawColorType.MILKY;
+    		}
+    		if (a == 128 && type == LDrawColorType.SOLID) {
+    			type = LDrawColorType.TRANSPARENT;
     		}
     		try {
     			code = Integer.parseInt(ld[idx]);
@@ -772,7 +810,10 @@ public class LDrawParser {
     		catch (NumberFormatException nfe) {
     			throw new IllegalArgumentException("Invalid EDGE format: "+ld[ex]);
     		}
-    		return LDrawColor.newLDrawColor(name, code, c, e);
+    		if (code == 16 || code == 32 || code == 24 || code == 493 || code == 494 || code == 495) {
+    			type = LDrawColorType.INTERNAL;
+    		}
+    		return LDrawColor.newLDrawColor(name, code, type, c, e);
 	    }
         throw new IllegalArgumentException("Invalid !COLOUR definition: "+l);
 	}

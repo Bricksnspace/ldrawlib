@@ -51,17 +51,21 @@ public class LDrawColor {
 	public static final int YELLOW = 14;
 	public static final int WHITE = 15;
 	public static final int TR_BROWN = 40;
+	
+
 	private int id;
 	private Color c;
 	private Color edge;
 	private String name;
+	private LDrawColorType type = LDrawColorType.USERDEF;
 	private static Map<Integer,LDrawColor> ldrColors = new HashMap<Integer,LDrawColor>();
 
 	
-	private LDrawColor(int id,Color c, Color e, String n) {
+	private LDrawColor(int id,Color c, Color e, LDrawColorType t, String n) {
 		
 		this.id = id;
 		this.c = c;
+		type = t;
 		edge = e;
 		name = n;
 	}
@@ -156,11 +160,22 @@ public class LDrawColor {
 	
 	
 	/**
-	 * Returns an LDraw color or a direct user color with index <b>id</b>
+	 * Checks if <b>id</b> is an official LDraw color
+	 * @param id color index to check
+	 * @return true if color is in library color definition file
+	 */
+	static public boolean isOfficialColor(int id) {
+		
+		return ldrColors.containsKey(id);
+	}
+	
+	
+	
+	/**
+	 * Returns an LDraw color, a blended color or a direct user color with index <b>id</b>
 	 * 
 	 * @param id LDraw color index or an int value of direct color as "0x2rrggbb" 
 	 * @return LDraw color with index <b>id</b> or newly created direct color
-	 * @throws IndexOutOfBoundsException if no color exists with index <b>id</b> or id > 0x2ffffff
 	 */
 	static public LDrawColor getById(int id) {
 		
@@ -169,13 +184,13 @@ public class LDrawColor {
 		}
 		else if (id >= 0x100 && id < 0x200) {
 			// blended color
-			return newLDrawColor("Blended color "+id,id,getBlendedColor(id),getColorById(EDGE));
+			return newLDrawColor("Blended color "+id,id,LDrawColorType.USERDEF,getBlendedColor(id),getColorById(EDGE));
 		}
 		else if (id >= 0x2000000 && id < 0x3000000) {
 			// it is a direct color
-			return newLDrawColor("Direct color",id,new Color(id-0x2000000),getColorById(EDGE));
+			return newLDrawColor("Direct color",id,LDrawColorType.USERDEF,new Color(id-0x2000000),getColorById(EDGE));
 		}
-		Logger.getGlobal().warning("[LdrawColor] Illegal direct color: "+id);
+		Logger.getGlobal().warning("[LdrawColor] Illegal color specification: "+id);
 		return ldrColors.get(INVALID_COLOR);
 	}
 
@@ -202,6 +217,24 @@ public class LDrawColor {
 	}
 
 	
+	/**
+	 * @return the type
+	 */
+	public LDrawColorType getType() {
+		return type;
+	}
+
+
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(LDrawColorType type) {
+		this.type = type;
+	}
+
+
+
 	public static Set<Integer> getAllColors() {
 		
 		return ldrColors.keySet();
@@ -219,13 +252,13 @@ public class LDrawColor {
 	 * @return LDrawColor object
 	 * @throws IllegalArgumentException if name is empty or null, if mainColor is null, if edgeColor is null
 	 */
-	static LDrawColor newLDrawColor(String name, int index, Color mainColor, Color edgeColor) {
+	static LDrawColor newLDrawColor(String name, int index, LDrawColorType type, Color mainColor, Color edgeColor) {
 		
 		if (name == null || name.length() == 0)
 			throw new IllegalArgumentException("[LDrawLib.LDrawColor] Color identifier can't be empty");
 		if (mainColor == null || edgeColor == null) 
 			throw new IllegalArgumentException("[LDrawLib.LDrawColor] Main and Edge color can't be null");
-		return new LDrawColor(index, mainColor, edgeColor, name);
+		return new LDrawColor(index, mainColor, edgeColor, type, name);
 	}
 	
 	
@@ -284,9 +317,8 @@ public class LDrawColor {
 				LDrawCommand cmd = LDrawParser.parseCommand(l);
 				if (cmd != LDrawCommand.COLOUR)
 					continue;
-				LDrawColor ldc;
 				try {
-					ldc = LDrawParser.parseColour(l);
+					LDrawColor ldc = LDrawParser.parseColour(l);
 					nc.put(ldc.id, ldc);
 				} catch (IllegalArgumentException e) {
 					Logger.getGlobal().severe("[LDRawColor.readFromLibrary] "+LDRCONFIG+
@@ -299,7 +331,7 @@ public class LDrawColor {
 					+ "File: " + LDRCONFIG + " line #: "+lnr.getLineNumber());
 		}
 		// put invalid color code and color schema (deep black with red lines)
-		nc.put(-1, new LDrawColor(-1, Color.BLACK, Color.RED, "Invalid/Unknown color"));
+		nc.put(-1, new LDrawColor(-1, Color.BLACK, Color.RED, LDrawColorType.USERDEF, "Invalid/Unknown color"));
 		ldrColors = nc;
 	}
 	
