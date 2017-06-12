@@ -184,11 +184,11 @@ public class LDrawColor {
 		}
 		else if (id >= 0x100 && id < 0x200) {
 			// blended color
-			return newLDrawColor("Blended color "+id,id,LDrawColorType.USERDEF,getBlendedColor(id),getColorById(EDGE));
+			return newLDrawColor("Blended_color_"+id,id,LDrawColorType.USERDEF,getBlendedColor(id),getColorById(EDGE));
 		}
 		else if (id >= 0x2000000 && id < 0x3000000) {
 			// it is a direct color
-			return newLDrawColor("Direct color",id,LDrawColorType.USERDEF,new Color(id-0x2000000),getColorById(EDGE));
+			return newLDrawColor("Direct_color_"+id,id,LDrawColorType.USERDEF,new Color(id-0x2000000),getColorById(EDGE));
 		}
 		Logger.getGlobal().warning("[LdrawColor] Illegal color specification: "+id);
 		return ldrColors.get(INVALID_COLOR);
@@ -331,7 +331,7 @@ public class LDrawColor {
 					+ "File: " + LDRCONFIG + " line #: "+lnr.getLineNumber());
 		}
 		// put invalid color code and color schema (deep black with red lines)
-		nc.put(-1, new LDrawColor(-1, Color.BLACK, Color.RED, LDrawColorType.USERDEF, "Invalid/Unknown color"));
+		nc.put(-1, new LDrawColor(-1, Color.BLACK, Color.RED, LDrawColorType.USERDEF, "Invalid_color"));
 		ldrColors = nc;
 	}
 	

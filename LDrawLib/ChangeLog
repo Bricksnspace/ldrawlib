@@ -1,3 +1,8 @@
+2017-06-12  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDrawColor.java (getById): changed color name to avoid whitespace in name
+	(readFromLibrary): changed color name to avoid whitespace in name
+
 2017-04-20  Mario Pascucci  <mpascucci@gmail.com>
 
 	* src/bricksnspace/ldrawlib/LDrawColor.java (isOfficialColor): checks if color is in official library
