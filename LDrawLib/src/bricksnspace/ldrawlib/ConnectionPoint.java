@@ -71,8 +71,6 @@ public class ConnectionPoint {
 	public static final String CONNFOLDER = "conn/";
 	public static final String ZIPFOLDER = "";
 	public static final String CONNEXT = ".cxml";
-	public static final String CONNURL = "http://sourceforge.net/projects/jbrickbuilder/files/jbrickbuilder/connections/ldrconn.zip/download";
-	public static final String CONNVERSION = "http://jbrickbuilder.sourceforge.net/CONNVERSION";
 	public static final String CONNAUTO = "autoconnect.csv"; 
 
 	private static Map<String,List<ConnectionPoint>> connectionsCache = 
