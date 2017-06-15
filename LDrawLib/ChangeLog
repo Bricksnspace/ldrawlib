@@ -1,3 +1,10 @@
+2017-06-15  Mario Pascucci  <mpascucci@gmail.com>
+
+	* src/bricksnspace/ldrawlib/LDLibManageDlg.java: added official library update task 
+	* src/bricksnspace/ldrawlib/LDLibrary.java (LDLibrary): changed exception to IOException if library don't follows standards
+	* src/bricksnspace/ldrawlib/GetLibFromURL.java: (new) gets a library from web and checks if it is a standard library 
+	* src/bricksnspace/ldrawlib/LDrawLib.java (isOfficialZip): added check if official library is a zip file
+
 2017-06-12  Mario Pascucci  <mpascucci@gmail.com>
 
 	* src/bricksnspace/ldrawlib/LDrawColor.java (getById): changed color name to avoid whitespace in name

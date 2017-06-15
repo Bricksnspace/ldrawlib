@@ -20,6 +20,7 @@
 
 package bricksnspace.ldrawlib;
 
+
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -27,6 +28,8 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +44,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -49,12 +53,14 @@ import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableColumnModel;
+
 
 
 
@@ -68,12 +74,15 @@ import javax.swing.table.TableColumnModel;
 public class LDLibManageDlg extends JDialog implements ActionListener {
 
 	private static final long serialVersionUID = 8988123312521694767L;
+	
+	private static final String LDRURL = "http://www.ldraw.org/library/updates/complete.zip";
 
 	private JPanel contentPanel;
 	private JTable table;
 	private JButton addButton,delButton,upButton,downButton;
 	private JButton okButton;
 	private JProgressBar pgr;
+	private JLabel status;
 
 	private LDrawLib ldl;
 	private LDLibTableModel tableModel;
@@ -83,9 +92,14 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 
 	
 	private Timer tmr = null;
-	private LDrawDBImportTask task = null;
+	private Timer updTmr = null;
+	
+	@SuppressWarnings("rawtypes")
+	private SwingWorker task = null;
 
 	private JButton chgDefault;
+
+	private JButton updOfficial;
 	
 
 	
@@ -152,6 +166,9 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 		pgr.setMinimum(0);
 		pgr.setMaximum(100);
 		pgr.setStringPainted(true);
+		status = new JLabel("");
+		
+		
 
 		
 		userPane = new JPanel();
@@ -166,12 +183,17 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 			refreshButton = new JButton("Refresh");
 			refreshButton.addActionListener(this);
 		}
-		chgDefault = new JButton("Set Official...");
+		chgDefault = new JButton("Change Official...");
+		updOfficial = new JButton("Update Official");
+		if (!ldl.isOfficialZip()) {
+			updOfficial.setEnabled(false);
+		}
 		addButton.addActionListener(this);
 		delButton.addActionListener(this);
 		upButton.addActionListener(this);
 		downButton.addActionListener(this);
 		chgDefault.addActionListener(this);
+		updOfficial.addActionListener(this);
 		
 		userPane.add(addButton);
 		userPane.add(delButton);
@@ -184,6 +206,7 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 		userPane.add(new JSeparator(SwingConstants.HORIZONTAL));
 		userPane.add(Box.createVerticalStrut(5));
 		userPane.add(chgDefault);
+		userPane.add(updOfficial);
 		userPane.add(Box.createVerticalGlue());
 
 		JPanel buttonPane = new JPanel();
@@ -193,6 +216,7 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		
 		buttonPane.add(pgr);
+		buttonPane.add(status);
 		buttonPane.add(Box.createHorizontalGlue());
 
 		okButton = new JButton("OK");
@@ -226,7 +250,8 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 				try {
 					tmr.stop();
 					setEnabled(true);
-					int i = task.get(10, TimeUnit.MILLISECONDS);
+					status.setText("");
+					int i = (int) task.get(10, TimeUnit.MILLISECONDS);
 					JOptionPane.showMessageDialog(this, "Imported/updated "+i+" LDraw parts.", 
 								"LDraw part database", JOptionPane.INFORMATION_MESSAGE);
 					tmr = null;
@@ -252,6 +277,62 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 				tableModel.refreshTable();
 			}
 		}
+		else if (ev.getSource() == updTmr) {
+			pgr.setValue(task.getProgress());
+			if (task.isDone() || task.isCancelled()) {
+				try {
+					updTmr.stop();
+					status.setText("");
+					task.get(10, TimeUnit.MILLISECONDS);
+					updTmr = null;
+					if (!ldl.replaceOfficial(ldl.getPath(LDrawLib.OFFICIALINDEX))) {
+						throw new IOException("Downloaded library isn't an LDraw library, or is corrupted.");
+					}
+					if (ldl.isDatabaseEnabled()) {
+						tmr = new Timer(200, this);
+						task = new LDrawDBImportTask(ldl, LDrawLib.OFFICIALINDEX);
+						task.execute();
+						tmr.start();
+						status.setText("Update database...");
+						setEnabled(false);
+					}
+				}
+				catch (ExecutionException ex) {
+					Logger.getGlobal().log(Level.SEVERE,"Error in library update.", ex);
+					JOptionPane.showMessageDialog(this, "Error in update: \n"+ex.getLocalizedMessage(), 
+							"LDraw part database", JOptionPane.ERROR_MESSAGE);
+				} catch (InterruptedException e1) {
+					try {
+						ldl.getLdrDB().abortUpdate();
+					} catch (SQLException e) {
+						Logger.getGlobal().log(Level.SEVERE,"[LDLibManageDlg] Exception in rollback interrupted update", e);
+					}
+					Logger.getGlobal().log(Level.SEVERE,"[LDLibManageDlg] Database update interrupted", e1);
+					JOptionPane.showMessageDialog(this, "Update interrupted.", 
+							"LDraw part database", JOptionPane.INFORMATION_MESSAGE);
+				} catch (TimeoutException e1) {
+					Logger.getGlobal().log(Level.SEVERE,"[LDLibManageDlg] Timeout in retrieve update results", e1);
+				} catch (IOException e) {
+					Logger.getGlobal().log(Level.SEVERE,"Error in library update.", e);
+					JOptionPane.showMessageDialog(this, "Error in update: \n"+e.getLocalizedMessage(), 
+							"LDraw part database", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+			
+		}
+		else if (ev.getSource() == updOfficial) {
+			try {
+				task = new GetLibFromURL(new URL(LDRURL),ldl.getPath(LDrawLib.OFFICIALINDEX));
+			} catch (MalformedURLException e) {
+				Logger.getGlobal().log(Level.SEVERE,"Invalid LDraw library download URL", e);
+				return;
+			}
+			updTmr = new Timer(200, this);
+			status.setText("Get new library...");
+			task.execute();
+			updTmr.start();
+			setEnabled(false);
+		}
 		else if (ev.getSource() == refreshButton) {
 			if (ldl.isDatabaseEnabled()) {
 				int idx = table.getSelectedRow();
@@ -262,6 +343,7 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 					return;
 				tmr = new Timer(200, this);
 				task = new LDrawDBImportTask(ldl, idx);
+				status.setText("Update database...");
 				task.execute();
 				tmr.start();
 				setEnabled(false);
@@ -276,6 +358,7 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 				if (ldl.isDatabaseEnabled()) {
 					tmr = new Timer(200, this);
 					task = new LDrawDBImportTask(ldl, idx);
+					status.setText("Update database...");
 					task.execute();
 					tmr.start();
 					setEnabled(false);
@@ -335,6 +418,7 @@ public class LDLibManageDlg extends JDialog implements ActionListener {
 				if (ldl.isDatabaseEnabled()) {
 					tmr = new Timer(200, this);
 					task = new LDrawDBImportTask(ldl, LDrawLib.OFFICIALINDEX);
+					status.setText("Update database...");
 					task.execute();
 					tmr.start();
 					setEnabled(false);

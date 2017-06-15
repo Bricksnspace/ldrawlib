@@ -90,8 +90,7 @@ public class LDLibrary {
 	 * and if library is really official
 	 * @param path pathname to library folder or zipfile
 	 * @param official true if library is official LDraw library
-	 * @throws IllegalArgumentException if library is marked official but it isn't
-	 * @throws IOException 
+	 * @throws IOException if library is marked official but it isn't
 	 * @throws ZipException 
 	 */
 	public LDLibrary(String path, boolean official) throws ZipException, IOException {
@@ -224,7 +223,7 @@ public class LDLibrary {
 		}
 		if (official) {
 			if (!isLDrawStd || !partList.containsKey(LDrawColor.LDRCONFIG.toLowerCase())) {
-				throw new IllegalArgumentException("[LDLibrary] Library marked as official does not appears as official LDraw library.\nLibrary: "+path);
+				throw new IOException("[LDLibrary] Library marked as official does not appears as official LDraw library.\nLibrary: "+path);
 			}
 		}
 		this.official = official;

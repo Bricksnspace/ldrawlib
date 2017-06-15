@@ -277,6 +277,20 @@ public class LDrawLib {
 	}
 	
 	
+	/**
+	 * checks if official library is a zipfile
+	 * @return true if official library is a zipfile
+	 */
+	public boolean isOfficialZip() {
+		
+		LDLibrary l = ldLibs.get(OFFICIALINDEX);
+		if (l != null && l.getType() == LDLibrary.ZIPFILE) {
+			return true;
+		}
+		return false;
+	}
+	
+	
 	
 	/**
 	 * Returns true if selected library is "official"
